@@ -1,12 +1,12 @@
-package com.akinnova.bookstoredemo.ResponsePojo;
+package com.akinnova.bookstoredemo.response;
 
 import lombok.Data;
 
 @Data
 public class BookResponsePojo<T> {
 
+    String statusCode = "200";
     String message;
-    int statusCode = 200;
     T data;
     boolean success = true;
 

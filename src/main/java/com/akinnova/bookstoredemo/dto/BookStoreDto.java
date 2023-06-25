@@ -2,7 +2,7 @@ package com.akinnova.bookstoredemo.dto;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 public class BookStoreDto {
@@ -16,6 +16,6 @@ public class BookStoreDto {
     private Integer volume;
     private Long quantity;
     private Double price;
-    private Date supplyDate;
+    private LocalDateTime supplyDate;
     private Boolean deleteStatus;
 }
