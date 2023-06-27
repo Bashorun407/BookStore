@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
         //@UniqueConstraint(columnNames = "book_title"),
         @UniqueConstraint(columnNames = "serialNumber")
 })
-public class BookStore {
+public class BookEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

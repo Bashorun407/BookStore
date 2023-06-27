@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class BookStoreDto {
+public class BookEntityDto {
 
     private Long id;
     private String title;

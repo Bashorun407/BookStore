@@ -1,5 +1,6 @@
 package com.akinnova.bookstoredemo.entity;
 
+import com.akinnova.bookstoredemo.repository.AdminRepository;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,4 +41,5 @@ public class AdminEntity {
             inverseJoinColumns = @JoinColumn(name = "role", referencedColumnName = "role_name")
     )
     private Set<Roles> rolesSet;
+
 }

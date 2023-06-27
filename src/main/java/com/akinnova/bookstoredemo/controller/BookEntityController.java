@@ -1,9 +1,9 @@
 package com.akinnova.bookstoredemo.controller;
 
 import com.akinnova.bookstoredemo.response.BookResponsePojo;
-import com.akinnova.bookstoredemo.dto.BookStoreDto;
-import com.akinnova.bookstoredemo.entity.BookStore;
-import com.akinnova.bookstoredemo.service.BookStoreService;
+import com.akinnova.bookstoredemo.dto.BookEntityDto;
+import com.akinnova.bookstoredemo.entity.BookEntity;
+import com.akinnova.bookstoredemo.service.BookEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,43 +11,43 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/bookstore")
-public class BookStoreController {
+public class BookEntityController {
 
     @Autowired
-   private BookStoreService bookStoreService;
+   private BookEntityService bookStoreService;
 
     @PostMapping("/auth/createBook")
-    public BookResponsePojo<BookStore> createBook(@RequestBody BookStoreDto bookStoreDto){
+    public BookResponsePojo<BookEntity> createBook(@RequestBody BookEntityDto bookStoreDto){
         return bookStoreService.createBook(bookStoreDto);
     }
 
     @GetMapping("/auth/findAllBooks")
-    public BookResponsePojo<List<BookStore>> findAllBooks(){
+    public BookResponsePojo<List<BookEntity>> findAllBooks(){
         return bookStoreService.findAllBooks();
     }
 
     @GetMapping("/auth/findByAuthor/{author}")
-    public BookResponsePojo<List<BookStore>> findBookByAuthor(@PathVariable String author){
+    public BookResponsePojo<List<BookEntity>> findBookByAuthor(@PathVariable String author){
         return bookStoreService.findBookByAuthor(author);
     }
 
     @GetMapping("/auth/findByTitle/{title}")
-    public BookResponsePojo<List<BookStore>> findBookByTitle(@PathVariable String title){
+    public BookResponsePojo<List<BookEntity>> findBookByTitle(@PathVariable String title){
         return bookStoreService.findBookByTitle(title);
     }
 
     @GetMapping("/auth/findByGenre/{genre}")
-    public BookResponsePojo<List<BookStore>> findBooksByGenre(@PathVariable String genre){
+    public BookResponsePojo<List<BookEntity>> findBooksByGenre(@PathVariable String genre){
         return bookStoreService.findBooksByGenre(genre);
     }
 
     @GetMapping("/auth/findBySerialNumber/{serialNumber}")
-    public BookResponsePojo<BookStore> findBookBySerialNumber(@PathVariable String serialNumber){
+    public BookResponsePojo<BookEntity> findBookBySerialNumber(@PathVariable String serialNumber){
         return bookStoreService.findBookBySerialNumber(serialNumber);
     }
 
     @PutMapping("/updateBook")
-    public BookResponsePojo<BookStore> updateBookContent(@RequestBody BookStoreDto bookStoreDto){
+    public BookResponsePojo<BookEntity> updateBookContent(@RequestBody BookEntityDto bookStoreDto){
         return bookStoreService.updateBookContent(bookStoreDto);
     }
 
