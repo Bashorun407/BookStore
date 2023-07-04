@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 @Service
@@ -49,16 +50,21 @@ public class ReviewServiceImpl implements IReviewService {
         //To save review to database
         reviewRepository.save(review);
 
-        //To set total number of likes
-        review.setTotalLikes(((long) reviewRepository.findByTitle(review.getTitle()).get()
-                .stream().mapToInt(Review::getLikes).sum()));
+        //To increase total number of likes if likes was included in the 'payload'
+        if(!ObjectUtils.isEmpty(reviewDto.getTitle())){
+            review.setTotalLikes(((long) reviewRepository.findByTitle(review.getTitle()).get()
+                    .stream().mapToInt(Review::getLikes).sum()));
+        }
 
-        //To set average rating
-        review.setAverageRating(reviewRepository.findByTitle(review.getTitle()).get()
-                .stream().mapToInt(Review::getStarRating).sum()
-                / reviewRepository.findByTitle(review.getTitle()).get().stream().count());
+        //To set average rating if rating was included in the 'payload'
+        if(!ObjectUtils.isEmpty(reviewDto.getStarRating())){
+            review.setAverageRating(reviewRepository.findByTitle(review.getTitle()).get()
+                    .stream().mapToInt(Review::getStarRating).sum()
+                    / reviewRepository.findByTitle(review.getTitle()).get().stream().count());
+        }
 
-
+        //save totoal likes and star-rating to repository
+        reviewRepository.save(review);
 
         return new ResponseEntity<>("Thanks for your review", HttpStatus.ACCEPTED);
     }
