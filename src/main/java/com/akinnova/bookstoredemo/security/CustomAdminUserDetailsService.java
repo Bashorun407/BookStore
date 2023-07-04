@@ -22,7 +22,7 @@ public class CustomAdminUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        AdminEntity admin = adminRepository.findByUsernameOrEmail(username, username)
+        AdminEntity admin = adminRepository.findByUsername(username)
                 .orElseThrow(()-> new UsernameNotFoundException("User with username: not found " + username));
 
         Set<GrantedAuthority> authorities = admin.getRolesSet().stream()

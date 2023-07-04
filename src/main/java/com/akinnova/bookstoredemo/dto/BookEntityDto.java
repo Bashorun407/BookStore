@@ -2,11 +2,11 @@ package com.akinnova.bookstoredemo.dto;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 public class BookEntityDto {
-
     private Long id;
     private String title;
     private String author;

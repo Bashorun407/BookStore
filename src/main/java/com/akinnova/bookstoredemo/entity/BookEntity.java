@@ -1,25 +1,22 @@
 package com.akinnova.bookstoredemo.entity;
-
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.beans.factory.annotation.Value;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
 @Entity
-@Table(name = "book_store", uniqueConstraints = {
-        //@UniqueConstraint(columnNames = "book_title"),
+@Table(name = "book_table", uniqueConstraints = {
         @UniqueConstraint(columnNames = "serialNumber")
 })
 public class BookEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,11 +26,11 @@ public class BookEntity {
     private String summary;
     private String serialNumber;
     private Integer volume;
-    private Long quantity;
+    //Quantity has a default value of 1
+    private Long quantity = Long.sum(0, 1);
     private Double price;
     @CreationTimestamp
     private LocalDateTime supplyDate;
-    @Value("false")
     private Boolean deleteStatus;
 
 }

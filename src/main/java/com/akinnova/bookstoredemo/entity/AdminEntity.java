@@ -1,14 +1,11 @@
 package com.akinnova.bookstoredemo.entity;
-
-import com.akinnova.bookstoredemo.repository.AdminRepository;
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -32,7 +29,6 @@ public class AdminEntity {
     private String email;
     private String password;
     private String contactNumber;
-    @Value("true")
     private Boolean activeStatus;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)

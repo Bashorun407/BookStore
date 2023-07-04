@@ -7,7 +7,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -17,7 +16,6 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @AllArgsConstructor
-@EnableMethodSecurity
 @EnableWebSecurity
 public class SecurityConfig {
 
@@ -27,24 +25,54 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    //2)Security Filter Chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize->
-                        authorize.requestMatchers(HttpMethod.POST, "/api/v1/bookstore/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/bookstore/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.PUT, "/api/v1/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/testing/**").permitAll()
+                        authorize.regexMatchers(HttpMethod.POST, "/api/v1/bookstore/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.GET, "/api/v1/bookstore/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.POST, "/api/v1/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.GET, "/api/v1/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.PUT, "/api/v1/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.DELETE, "/api/v1/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.GET, "/api/v1/testing/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.POST, "/api/v1/customer/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.PUT, "/api/v1/customer/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.POST, "/api/v1/comment/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.GET, "/api/v1/comment/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.POST, "/api/v1/review/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.GET, "/api/v1/review/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.POST, "/api/v1/cart/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.GET, "/api/v1/cart/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.PUT, "/api/v1/cart/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.DELETE, "/api/v1/cart/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.POST, "/api/v1/transaction/auth/(.*)").permitAll()
                                 .anyRequest().authenticated()
                 ).httpBasic(Customizer.withDefaults());
 
         return httpSecurity.build();
     }
+
+
+//  The following method was the original implementation
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+//        httpSecurity
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .authorizeHttpRequests(authorize->
+//                        authorize.requestMatchers(HttpMethod.POST, "/api/v1/bookstore/auth/**").permitAll()
+//                                .requestMatchers(HttpMethod.GET, "/api/v1/bookstore/auth/**").permitAll()
+//                                .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+//                                .requestMatchers(HttpMethod.GET, "/api/v1/auth/**").permitAll()
+//                                .requestMatchers(HttpMethod.PUT, "/api/v1/auth/**").permitAll()
+//                                .requestMatchers(HttpMethod.DELETE, "/api/v1/auth/**").permitAll()
+//                                .requestMatchers(HttpMethod.GET, "/api/v1/testing/**").permitAll()
+//                                .anyRequest().authenticated()
+//                ).httpBasic(Customizer.withDefaults());
+//
+//        return httpSecurity.build();
+//    }
 
     //3)Authentication Manager
     @Bean

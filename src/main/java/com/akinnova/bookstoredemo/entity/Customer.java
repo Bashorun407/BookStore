@@ -1,14 +1,13 @@
 package com.akinnova.bookstoredemo.entity;
-
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import javax.persistence.Entity;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -34,10 +33,10 @@ public class Customer {
     private LocalDateTime dateRegistered;
 
     //One-to-One relationship with role
-    @OneToOne
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "customer_role",
             joinColumns = @JoinColumn(name = "customer", referencedColumnName = "username"),
-            inverseJoinColumns = @JoinColumn(name = "role", referencedColumnName = "roleName")
+            inverseJoinColumns = @JoinColumn(name = "role", referencedColumnName = "role_name")
     )
     private Set<Roles> roles;
 }

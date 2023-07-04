@@ -6,21 +6,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
 @Entity
-@Table(name = "transaction")
-public class Transaction {
+@Table(name = "cart")
+public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
-    private Double amountPaid;
-    private String invoiceCode;
-    private LocalDateTime transactionDate;
+    private String title;
+    private String serialNumber;
+    private Double price;
+    private Integer quantity;
+    private Double amountToPay;
+    private Boolean checkOut = false;
 }
