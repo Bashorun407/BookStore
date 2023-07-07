@@ -10,7 +10,7 @@ public interface IBookEntityService {
     ResponsePojo<BookEntity> createBook(BookEntityDto bookStoreDto);
     ResponsePojo<List<BookEntity>> findAllBooks();
     ResponsePojo<List<BookEntity>> findBookByAuthor(String author);
-    ResponsePojo<List<BookEntity>> findBookByTitle(String title);
+    ResponsePojo<BookEntity> findBookByTitle(String title);
     ResponsePojo<List<BookEntity>> findBooksByGenre(String genre);
     ResponsePojo<BookEntity> findBookBySerialNumber(String serialNumber);
     ResponsePojo<BookEntity> updateBookContent(BookEntityDto bookStoreDto);

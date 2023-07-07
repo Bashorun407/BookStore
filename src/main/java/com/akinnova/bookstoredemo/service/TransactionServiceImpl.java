@@ -13,13 +13,14 @@ import com.akinnova.bookstoredemo.repository.CartRepository;
 import com.akinnova.bookstoredemo.repository.TransactionRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-
+@AllArgsConstructor
 @Service
 public class TransactionServiceImpl implements ITransactionService{
     @Autowired
@@ -73,12 +74,16 @@ public class TransactionServiceImpl implements ITransactionService{
         //Deduct the balance from customer's balance
         cartItemPurchaseDto.setBalance(cartItemPurchaseDto.getBalance() - amountToPay);
 
+        String amountPaid = amountToPay.toString();
         //Send email to notify payment to customer
         EmailDetail emailDetail = EmailDetail.builder()
                 .subject("Successful Purchase From Akinova BookStores")
                                 .body("Dear " + cartItemPurchaseDto.getName() +
                                 "\n You received this notification from a purchase you made on our online bookstore.\n"
-                                + "Details of purchase are attached:" + "\n Thank you for patronizing us."
+                                + "Details of purchase are :"
+                                        + "\n Cost of purchase: " + amountPaid
+                                        + "\n Balance: " + cartItemPurchaseDto.getBalance().toString()
+                                        + "\n Thank you for patronizing us."
                                 + "\n\n Akinnova BookStore."  )
                 .recipient(cartItemPurchaseDto.getEmail())
                 .build();

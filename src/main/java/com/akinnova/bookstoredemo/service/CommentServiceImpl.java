@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CommentServiceImpl implements ICommentService {
@@ -91,5 +92,39 @@ public class CommentServiceImpl implements ICommentService {
         responsePojo.setMessage("All comments found");
         responsePojo.setData(allComments);
         return responsePojo;
+    }
+
+    //4) Method to delete comments by username
+    @Override
+    public ResponseEntity<?> deleteComment(CommentDto commentDto){
+        //To check that customer is registered and is in the customer database
+        if(!customerRepository.existsByUsername(commentDto.getUsername())){
+            throw new ApiException(String.format("User with this username: %s is not allowed. Ensure to register first.",
+                    commentDto.getUsername()));
+        }
+
+        //To check that book that will be comment on still exists
+        if(!bookEntityRepository.existsByTitle(commentDto.getTitle())) {
+            throw new ApiException(String.format("Book with this title: %s does not exist.",
+                    commentDto.getTitle()));
+        }
+
+        //Retrieves all comments on a book by customers/users
+        Optional<List<Comment>> commentList = commentRepository.findByTitle(commentDto.getTitle());
+        commentList.orElseThrow(()->new ApiException(String.format("There are no comments on this book titled: %s.", commentDto.getTitle())));
+
+        //To get particular comment by user using title and username of user
+//        Long commentToDelete = commentList.get().stream()
+//                .filter(x -> x.getTitle() == commentDto.getTitle() && x.getUsername() == x.getUsername())
+//                .findFirst()
+//                .orElseThrow(()-> new ApiException("Book Not found"))
+//                .getId();
+//                commentRepository.deleteById(commentToDelete);
+
+        List<Comment> comments = commentList.get();
+        Comment comment = comments.stream().findFirst().get();
+        commentRepository.delete(comment);
+
+        return new ResponseEntity<>("Comment deleted", HttpStatus.OK);
     }
 }

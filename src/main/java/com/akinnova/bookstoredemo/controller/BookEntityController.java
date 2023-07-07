@@ -33,7 +33,7 @@ public class BookEntityController {
     }
 
     @GetMapping("/auth/title/{title}")
-    public ResponsePojo<List<BookEntity>> findBookByTitle(@PathVariable String title){
+    public ResponsePojo<BookEntity> findBookByTitle(@PathVariable String title){
         return bookStoreService.findBookByTitle(title);
     }
 

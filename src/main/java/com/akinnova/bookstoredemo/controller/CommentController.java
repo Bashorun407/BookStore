@@ -39,4 +39,10 @@ public class CommentController {
     public ResponsePojo<List<Comment>> allComments() {
         return commentService.allComments();
     }
+
+    //4) Method to delete comments by username
+    @DeleteMapping("/auth/comment")
+    public ResponseEntity<?> deleteComment(@RequestBody CommentDto commentDto){
+        return commentService.deleteComment(commentDto);
+    }
 }

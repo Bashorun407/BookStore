@@ -38,9 +38,12 @@ public class SecurityConfig {
                                 .regexMatchers(HttpMethod.DELETE, "/api/v1/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.GET, "/api/v1/testing/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.POST, "/api/v1/customer/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.POST, "/api/v1/customer/auth/login").permitAll()
+                                .regexMatchers(HttpMethod.GET, "/api/v1/customer/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.PUT, "/api/v1/customer/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.POST, "/api/v1/comment/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.GET, "/api/v1/comment/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.DELETE, "/api/v1/comment/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.POST, "/api/v1/review/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.GET, "/api/v1/review/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.POST, "/api/v1/cart/auth/(.*)").permitAll()
@@ -48,6 +51,7 @@ public class SecurityConfig {
                                 .regexMatchers(HttpMethod.PUT, "/api/v1/cart/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.DELETE, "/api/v1/cart/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.POST, "/api/v1/transaction/auth/(.*)").permitAll()
+                                .regexMatchers(HttpMethod.POST, "/api/v1/email/auth/(.*)").permitAll()
                                 .anyRequest().authenticated()
                 ).httpBasic(Customizer.withDefaults());
 
@@ -80,3 +84,4 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 }
+

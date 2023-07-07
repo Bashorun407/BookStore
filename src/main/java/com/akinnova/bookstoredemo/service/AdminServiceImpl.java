@@ -56,10 +56,7 @@ public class AdminServiceImpl implements IAdminService {
         //Saves newly entered admin record into the database
         adminRepository.save(admin);
 
-        //To confirm that roles exist in the database
-//        rolesRepository.findByRoleName(adminDto.getRole())
-//                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
-
+        //To save roles in the roles database
         Roles roles = Roles.builder()
                 .roleName(adminDto.getRole())
                 .build();
@@ -81,7 +78,7 @@ public class AdminServiceImpl implements IAdminService {
                 .authenticate( new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return new ResponseEntity<>("User logged in successfully", HttpStatus.OK);
+        return new ResponseEntity<>("Admin logged in successfully", HttpStatus.OK);
     }
 
     //2) Method to get all Admins

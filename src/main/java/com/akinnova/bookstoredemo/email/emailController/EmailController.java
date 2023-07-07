@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/emailSender")
+@RequestMapping("/api/v1/email/auth")
 public class EmailController {
 
     @Autowired
@@ -23,7 +23,7 @@ public class EmailController {
     }
 
     //2) Method to send mail with attachment
-    @PostMapping("/mailWithAttachment")
+    @PostMapping("auth/mailWithAttachment")
     public ResponseEntity<?> sendEmailWithAttachment(@RequestBody EmailDetail emailDetail) {
         return emailService.sendEmailWithAttachment(emailDetail);
     }

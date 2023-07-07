@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
 @AllArgsConstructor
@@ -14,7 +15,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "review")
-public class Review {
+public class Review implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,7 +24,8 @@ public class Review {
     private Integer likes ;
     private Integer starRating ;
     private Long totalLikes ;
-    private Long averageRating;
+    //averageRating may or may not contain a double
+    private Double averageRating;
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "book_review",
             joinColumns = @JoinColumn(name = "review", referencedColumnName = "totalLikes"),

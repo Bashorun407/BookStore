@@ -7,7 +7,9 @@ import com.akinnova.bookstoredemo.dto.UpdateCustomerDto;
 import com.akinnova.bookstoredemo.email.emailDto.EmailDetail;
 import com.akinnova.bookstoredemo.email.emailService.EmailService;
 import com.akinnova.bookstoredemo.entity.Customer;
+import com.akinnova.bookstoredemo.entity.Roles;
 import com.akinnova.bookstoredemo.repository.CustomerRepository;
+import com.akinnova.bookstoredemo.repository.RolesRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
 
@@ -29,6 +31,8 @@ import java.util.Optional;
 public class CustomerServiceImpl implements ICustomerService {
     @Autowired
     private CustomerRepository customerRepository;
+    @Autowired
+    private RolesRepository rolesRepository;
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
@@ -59,11 +63,18 @@ public class CustomerServiceImpl implements ICustomerService {
         //To save data to customer repository
        Customer savedCustomer =  customerRepository.save(customer);
 
+        //To save roles in the roles database
+        Roles roles = Roles.builder()
+                .roleName(customerDto.getRole())
+                .build();
+        rolesRepository.save(roles);
+
        //Body of email to send to user's mail
         EmailDetail emailDetail = EmailDetail.builder()
                 .recipient(customerDto.getEmail())
                 .subject("BookReader Account Creation")
-                .body("Congratulations " + savedCustomer.getUsername() + "!!\n Your account has been successfully created."  +
+                .body("Congratulations " + savedCustomer.getFirstName() +", " + savedCustomer.getLastName()
+                        + "!!\n Your account has been successfully created."  +
                         "\n To continue, clink the link attached: " + "(attached link)")
                 .build();
 
@@ -105,7 +116,7 @@ public class CustomerServiceImpl implements ICustomerService {
     @Override
     public ResponsePojo<Customer> findCustomerByEmail(String email) {
         Optional<Customer> customerOptional = customerRepository.findByEmail(email);
-        customerOptional.orElseThrow(()-> new ApiException("Customer with specified username does not exist"));
+        customerOptional.orElseThrow(()-> new ApiException("Customer with specified email does not exist"));
 
         ResponsePojo<Customer> responsePojo = new ResponsePojo<>();
         responsePojo.setStatusCode(ResponseUtils.FOUND);
@@ -148,7 +159,8 @@ public class CustomerServiceImpl implements ICustomerService {
         EmailDetail emailDetail = EmailDetail.builder()
                 .recipient(savedCustomer.getEmail())
                 .subject("Updated BookReader Account Details")
-                .body("Hello " + savedCustomer.getUsername() + "!!\n Your account has been successfully updated.")
+                .body("Hello " + savedCustomer.getFirstName() + ", " + savedCustomer.getLastName()
+                        + "!!\n Your account has been successfully updated.")
                 .build();
 
         //Sending mail to user

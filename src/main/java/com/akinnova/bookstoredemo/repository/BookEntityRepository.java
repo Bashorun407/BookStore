@@ -12,7 +12,7 @@ public interface BookEntityRepository extends JpaRepository<BookEntity, Long> {
 
     Boolean existsByTitle(String title);
     Optional<List<BookEntity>> findBookByAuthor(String author);
-    Optional<List<BookEntity>> findBookByTitle(String title);
+    Optional<BookEntity> findBookByTitle(String title);
     Optional<List<BookEntity>> findBooksByGenre(String genre);
     Optional<BookEntity> findBookBySerialNumber(String serialNumber);
 }

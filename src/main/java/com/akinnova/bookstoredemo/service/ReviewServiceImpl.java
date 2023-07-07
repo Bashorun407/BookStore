@@ -58,9 +58,10 @@ public class ReviewServiceImpl implements IReviewService {
 
         //To set average rating if rating was included in the 'payload'
         if(!ObjectUtils.isEmpty(reviewDto.getStarRating())){
-            review.setAverageRating(reviewRepository.findByTitle(review.getTitle()).get()
+            review.setAverageRating((double)reviewRepository.findByTitle(review.getTitle()).get()
                     .stream().mapToInt(Review::getStarRating).sum()
-                    / reviewRepository.findByTitle(review.getTitle()).get().stream().count());
+                    /
+                    reviewRepository.findByTitle(review.getTitle()).get().size());
         }
 
         //save totoal likes and star-rating to repository
@@ -75,16 +76,18 @@ public class ReviewServiceImpl implements IReviewService {
        if(like == 1){
            return 1;
        }
-        return 0;
+       else
+           return 0;
     }
 
     //1b) Function to set rate
     public int rateFunction(int rate){
-        if(rate > 0 && rate <=5){
+        if(rate >= 1  && rate <=5){
             return rate;
         }
         //else return 0
-        return 0;
+        else
+            return 0;
     }
 
 

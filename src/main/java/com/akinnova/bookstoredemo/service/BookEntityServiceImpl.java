@@ -84,16 +84,16 @@ public class BookEntityServiceImpl implements IBookEntityService {
     }
 
     //Method to find book by title
-    public ResponsePojo<List<BookEntity>> findBookByTitle(String title){
-        Optional<List<BookEntity>> bookList = bookStoreRepository.findBookByTitle(title);
-        bookList.orElseThrow(()-> new ApiException(String.format("Book titled %s not found.", title)));
+    public ResponsePojo<BookEntity> findBookByTitle(String title){
+        Optional<BookEntity> bookEntityOptional = bookStoreRepository.findBookByTitle(title);
+        bookEntityOptional.orElseThrow(()-> new ApiException(String.format("Book titled %s not found.", title)));
 
         //Collecting only books that have not been deleted by filtering Optional List
-        List<BookEntity> booksToReturn = bookList.get().stream()
-                .filter(x-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
+//        List<BookEntity> booksToReturn = bookList.get().stream()
+//                .filter(x-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
 
-        ResponsePojo<List<BookEntity>> responsePojo = new ResponsePojo<>();
-        responsePojo.setData(booksToReturn);
+        ResponsePojo<BookEntity> responsePojo = new ResponsePojo<>();
+        responsePojo.setData(bookEntityOptional.get());
         responsePojo.setMessage("Books by title found");
 
         return responsePojo;

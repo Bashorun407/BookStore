@@ -10,6 +10,8 @@ import com.akinnova.bookstoredemo.repository.CartRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Service
 public class CartServiceImpl {
     @Autowired
@@ -29,7 +33,7 @@ public class CartServiceImpl {
     public ResponsePojo<Cart> createCartItem(CartDto cartDto) {
         //Cart List to collect all books
 
-        Optional<BookEntity> bookOptional =  bookEntityRepository.findBookBySerialNumber(cartDto.getTitle());
+        Optional<BookEntity> bookOptional =  bookEntityRepository.findBookByTitle(cartDto.getTitle());
         bookOptional.orElseThrow(()->
                 new ApiException(String.format("Book with the title: %s does not exist.", cartDto.getTitle())));
 
@@ -37,11 +41,12 @@ public class CartServiceImpl {
         //if it exists, extract needed details into cartDto object
         Cart cart = Cart.builder()
                 .username(cartDto.getUsername())
-                .title(bookEntity.getTitle())
+                .title(cartDto.getTitle())
                 .serialNumber(bookEntity.getSerialNumber())
                 .quantity(cartDto.getQuantity())
-                .price(cartDto.getPrice() * cartDto.getQuantity())
-                .checkOut(cartDto.getCheckOut())
+                .price(bookEntity.getPrice())
+                .amountToPay(cartDto.getPrice() * cartDto.getQuantity())
+                .checkOut(false)
                 .build();
 
         //Save data to repository
@@ -72,10 +77,11 @@ public class CartServiceImpl {
 
 
 //3) Method to update Item in cart
-    public ResponsePojo<Cart> updateCartItem(String serialNumber, CartDto cartDto) {
+// TODO: 7/5/2023 Cart needs some improvement 
+    public ResponsePojo<Cart> updateCartItem(CartDto cartDto) {
         //To retrieve the item to update from the database
-        Optional<Cart> itemOptional = cartRepository.findBySerialNumber(serialNumber);
-        itemOptional.orElseThrow(()-> new ApiException(String.format("Book with this serial number does not exist in the cart.")));
+        Optional<Cart> itemOptional = cartRepository.findByTitle(cartDto.getTitle());
+        itemOptional.orElseThrow(()-> new ApiException(String.format("Book with this title does not exist in the cart.")));
 
         Cart itemToUpdate = itemOptional.get();
 
@@ -97,16 +103,15 @@ public class CartServiceImpl {
     }
 
     //4) Method to delete/remove item from cart
-    public ResponseEntity<?> removeFromCart(String serialNumber) {
+    public ResponseEntity<?> removeFromCart(String title) {
 
         //To retrieve the item to delete from the database
-        Optional<Cart> itemOptional = cartRepository.findBySerialNumber(serialNumber);
-        itemOptional.orElseThrow(()-> new ApiException(String.format("book with serial number: %s not found in cart.")));
+        Optional<Cart> itemOptional = cartRepository.findByTitle(title);
+        itemOptional.orElseThrow(()-> new ApiException(String.format("book with title: %s not found in cart.", title)));
 
         //Remove item from cart in database
         cartRepository.delete(itemOptional.get());
         return new ResponseEntity<>("Item removed from Cart", HttpStatus.GONE);
     }
-
 
 }

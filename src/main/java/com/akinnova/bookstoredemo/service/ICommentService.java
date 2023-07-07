@@ -12,5 +12,6 @@ public interface ICommentService {
     ResponsePojo<List<Comment>> commentByUsername(String username);
     ResponsePojo<List<Comment>> commentByTitle(String title);
     ResponsePojo<List<Comment>> allComments();
+    ResponseEntity<?> deleteComment(CommentDto commentDto);
 
 }

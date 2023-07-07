@@ -19,25 +19,27 @@ public class CartController {
 
     //1) Method to add item to cart
     @PostMapping("/addCart")
-    public ResponsePojo<Cart> createCartItem(CartDto cartDto) {
+    public ResponsePojo<Cart> createCartItem(@RequestBody CartDto cartDto) {
         return cartService.createCartItem(cartDto);
     }
 
     //2) Method to retrieve all items in cart by username (i.e. for a username)
-    @GetMapping("/cartItems")
-    public ResponsePojo<List<Cart>> getCartItemByUsername(String username) {
+    @GetMapping("/cartItems/{username}")
+    public ResponsePojo<List<Cart>> getCartItemByUsername(@PathVariable(name = "username") String username) {
         return cartService.getCartItemByUsername(username);
     }
 
     //3) Method to update Item in cart
     @PutMapping("/updateCart")
-    public ResponsePojo<Cart> updateCartItem(String serialNumber, CartDto cartDto) {
-        return cartService.updateCartItem(serialNumber, cartDto);
+    public ResponsePojo<Cart> updateCartItem(@RequestBody CartDto cartDto) {
+        return cartService.updateCartItem(cartDto);
     }
 
     //4) Method to delete/remove item from cart
-    @DeleteMapping("/delCart")
-    public ResponseEntity<?> removeFromCart(String serialNumber) {
+    @DeleteMapping("/delCart/{serialNumber}")
+    public ResponseEntity<?> removeFromCart(@PathVariable(name = "serialNumber") String serialNumber) {
         return cartService.removeFromCart(serialNumber);
     }
 }
+
+
