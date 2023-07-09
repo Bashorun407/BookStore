@@ -13,8 +13,6 @@ import com.akinnova.bookstoredemo.repository.RolesRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
 
-import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,22 +24,25 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-@AllArgsConstructor
+
 @Service
 public class CustomerServiceImpl implements ICustomerService {
-    @Autowired
-    private CustomerRepository customerRepository;
-    @Autowired
-    private RolesRepository rolesRepository;
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final CustomerRepository customerRepository;
+    private final RolesRepository rolesRepository;
+    private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
-    @Autowired
-    private EmailService emailService;
-//    @Autowired
-//    private Roles roles;
+    // Class Constructor
+    public CustomerServiceImpl(CustomerRepository customerRepository, RolesRepository rolesRepository,
+                               AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder,
+                               EmailService emailService) {
+        this.customerRepository = customerRepository;
+        this.rolesRepository = rolesRepository;
+        this.authenticationManager = authenticationManager;
+        this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
+    }
 
     // TODO: 6/27/2023 (Create, Login, update)
     //1) Method to create customer

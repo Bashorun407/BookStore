@@ -48,7 +48,7 @@ public class ResponseUtils {
 
 
 
-    //I don't know what this method is for yet....
+    //Method to generate a book's Serial Number
     public static String generateBookSerialNumber(int len, String bookTitle) {
 
         String bookRegNumber = ""; //This will contain the book's registration number
@@ -68,6 +68,7 @@ public class ResponseUtils {
 
     }
 
+    //Method to generate invoice code in Transaction Service layer
     public static String generateInvoiceCode(int len, String username){
         String invoiceCode = ""; //newly generated invoice-code will be stored in this variable
         char[] numChar = new char[len]; //Character array that will hold a maximum of 'len' characters
@@ -80,6 +81,26 @@ public class ResponseUtils {
         }
         //Invoice will be a combination of the first 3-characters of username with randomly generated digits
         invoiceCode = username.substring(0, 2) + new String(numChar);
-        return null;
+        return invoiceCode;
+    }
+
+    //Method to generate Like in Review Service class
+    public static int likeFunction(int like) {
+        return like == 1 ? 1 : 0;
+    }
+
+    //Method to generate rate in Review Service class
+    public static int rateFunction(int rate){
+        if(rate >= 1  && rate <=5){
+            return rate;
+        }
+        //else return 0
+        else
+            return 0;
+    }
+
+    //Compact form of rateFunction
+    public int ratoFunc(int rate){
+       return (rate >= 1 && rate <= 5) ? rate : 0;
     }
 }

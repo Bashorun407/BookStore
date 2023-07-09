@@ -7,19 +7,21 @@ import com.akinnova.bookstoredemo.entity.BookEntity;
 import com.akinnova.bookstoredemo.repository.BookEntityRepository;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
 
-import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-@AllArgsConstructor
+
 @Service
 public class BookEntityServiceImpl implements IBookEntityService {
-    @Autowired
-    private BookEntityRepository bookStoreRepository;
+    private final BookEntityRepository bookStoreRepository;
+
+    //Class Constructor
+    public BookEntityServiceImpl(BookEntityRepository bookStoreRepository) {
+        this.bookStoreRepository = bookStoreRepository;
+    }
 
     //Creating a method for creating a book object
     public ResponsePojo<BookEntity> createBook(BookEntityDto bookStoreDto){

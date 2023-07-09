@@ -4,8 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,8 +22,11 @@ public class Cart {
     private String username;
     private String title;
     private String serialNumber;
+    private String cartItemNumber;
     private Double price;
     private Integer quantity;
     private Double amountToPay;
     private Boolean checkOut = false;
+    @CreationTimestamp
+    private LocalDateTime timeCheckedIn;
 }

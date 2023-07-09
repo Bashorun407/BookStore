@@ -8,7 +8,6 @@ import com.akinnova.bookstoredemo.repository.CommentRepository;
 import com.akinnova.bookstoredemo.repository.CustomerRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -19,14 +18,17 @@ import java.util.Optional;
 
 @Service
 public class CommentServiceImpl implements ICommentService {
-    @Autowired
-    private CommentRepository commentRepository;
+    private final CommentRepository commentRepository;
+    private final CustomerRepository customerRepository;
+    private final BookEntityRepository bookEntityRepository;
 
-    @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
-    private BookEntityRepository bookEntityRepository;
+    //Class Constructor
+    public CommentServiceImpl(CommentRepository commentRepository, CustomerRepository customerRepository,
+                              BookEntityRepository bookEntityRepository) {
+        this.commentRepository = commentRepository;
+        this.customerRepository = customerRepository;
+        this.bookEntityRepository = bookEntityRepository;
+    }
 
     //1) Method to comment
     @Override

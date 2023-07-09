@@ -1,7 +1,9 @@
 package com.akinnova.bookstoredemo.entity;
 
-import lombok.*;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -12,22 +14,18 @@ import java.util.List;
 @Data
 @Builder
 @Entity
-@Table(name = "review")
-public class Review implements Serializable {
+@Table(name = "book_rates")
+public class RateBook implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
     private String title;
-    private Integer likes = 0;
-    private Integer starRating = 0;
-    //@Value("#{${my.int.property:0}}")
-    private Long totalLikes;
-    //averageRating may or may not contain a double
-    private Double averageRating = Double.sum(0, 0);
+    private Integer starRating;
+    private Double averageRating;
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "book_review",
-            joinColumns = @JoinColumn(name = "review", referencedColumnName = "totalLikes"),
+            joinColumns = @JoinColumn(name = "rating", referencedColumnName = "averageRating"),
             inverseJoinColumns = @JoinColumn(name = "book", referencedColumnName = "title")
     )
     private List<BookEntity> books;

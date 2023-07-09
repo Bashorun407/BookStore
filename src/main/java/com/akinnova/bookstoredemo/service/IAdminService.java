@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface IAdminService {
+    ResponsePojo<AdminEntity> searchAdmin(String firstName, String lastName, String username,
+                                          String email, String contactNumber);
     ResponsePojo<AdminEntity> CreateAdmin (AdminDto adminDto);
     ResponseEntity<?> login(LoginDto loginDto);
     ResponsePojo<List<AdminEntity>> findAllAdmin();

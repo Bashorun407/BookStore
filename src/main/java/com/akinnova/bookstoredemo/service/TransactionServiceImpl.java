@@ -2,7 +2,6 @@ package com.akinnova.bookstoredemo.service;
 
 import com.akinnova.bookstoredemo.Exception.ApiException;
 import com.akinnova.bookstoredemo.dto.CartItemPurchaseDto;
-import com.akinnova.bookstoredemo.dto.CustomerCardDto;
 import com.akinnova.bookstoredemo.email.emailDto.EmailDetail;
 import com.akinnova.bookstoredemo.email.emailService.EmailService;
 import com.akinnova.bookstoredemo.entity.BookEntity;
@@ -13,25 +12,28 @@ import com.akinnova.bookstoredemo.repository.CartRepository;
 import com.akinnova.bookstoredemo.repository.TransactionRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
-import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@AllArgsConstructor
+
 @Service
 public class TransactionServiceImpl implements ITransactionService{
-    @Autowired
-    private TransactionRepository transactionRepository;
-    @Autowired
-    private CartRepository cartRepository;
-    @Autowired
-    private BookEntityRepository bookEntityRepository;
+    private final TransactionRepository transactionRepository;
+    private final CartRepository cartRepository;
+    private final BookEntityRepository bookEntityRepository;
+    private final EmailService emailService;
 
-    @Autowired
-    private EmailService emailService;
+    //Class Constructor
+    public TransactionServiceImpl(TransactionRepository transactionRepository, CartRepository cartRepository,
+                                  BookEntityRepository bookEntityRepository, EmailService emailService) {
+        this.transactionRepository = transactionRepository;
+        this.cartRepository = cartRepository;
+        this.bookEntityRepository = bookEntityRepository;
+        this.emailService = emailService;
+    }
 
     //1) Method to conduct transaction
     @Override
@@ -45,26 +47,25 @@ public class TransactionServiceImpl implements ITransactionService{
         Double amountToPay = cartList.stream().mapToDouble(Cart::getPrice).sum();
 
         //To check that customer balance is equal to or more than the amountToPay
-        //If customer's balance is less than amount to pay
+        //If customer's balance is less than amount to pay...throw an exception
         if (cartItemPurchaseDto.getBalance() < amountToPay){
             throw new ApiException("Your balance is not sufficient to make purchase.");
         }
 
-        //All cart items' checkout attribute will be marked as true
-        //This will only work on cartList and not the repository
-        //cartList.forEach(e-> e.setCheckOut(true));
-
         //To change the checkout attribute of cart items in cart repository and then save in the database (cart database)
         for (Cart item: cartList) {
-            Cart cartItem = cartRepository.findBySerialNumber(item.getSerialNumber()).get();
+            Cart cartItem = cartRepository.findByCartItemNumber(item.getCartItemNumber()).get();
             cartItem.setCheckOut(true);
+            //Remove sold items cart items database
+            cartRepository.delete(cartItem);
             //Save new update in cart repository
-            cartRepository.save(cartItem);
+            //cartRepository.save(cartItem);
         }
 
         //Remove the quantity of items bought from total quantity in bookEntity repository and then save update in the database
         for(Cart item: cartList){
             BookEntity bookEntity = bookEntityRepository.findBookBySerialNumber(item.getSerialNumber()).get();
+            //reduce book quantity by quantity of books sold
                     bookEntity.setQuantity(bookEntity.getQuantity() - item.getQuantity());
 
                     //save the new information in the repository

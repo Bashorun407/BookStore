@@ -10,24 +10,25 @@ import com.akinnova.bookstoredemo.repository.CartRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Service
 public class CartServiceImpl {
-    @Autowired
-    private CartRepository cartRepository;
-    @Autowired
-    private BookEntityRepository bookEntityRepository;
+
+    private final CartRepository cartRepository;
+    private final BookEntityRepository bookEntityRepository;
+
+    //Class Constructor
+    public CartServiceImpl(CartRepository cartRepository, BookEntityRepository bookEntityRepository) {
+        this.cartRepository = cartRepository;
+        this.bookEntityRepository = bookEntityRepository;
+    }
 
     //1) Method to add item to cart
     public ResponsePojo<Cart> createCartItem(CartDto cartDto) {
@@ -43,10 +44,12 @@ public class CartServiceImpl {
                 .username(cartDto.getUsername())
                 .title(cartDto.getTitle())
                 .serialNumber(bookEntity.getSerialNumber())
+                .cartItemNumber(ResponseUtils.generateInvoiceCode(5, cartDto.getUsername()))
                 .quantity(cartDto.getQuantity())
                 .price(bookEntity.getPrice())
                 .amountToPay(cartDto.getPrice() * cartDto.getQuantity())
                 .checkOut(false)
+                .timeCheckedIn(LocalDateTime.now())
                 .build();
 
         //Save data to repository

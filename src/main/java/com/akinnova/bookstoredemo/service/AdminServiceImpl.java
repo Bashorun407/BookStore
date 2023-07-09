@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,14 +29,28 @@ import java.util.stream.Collectors;
 public class AdminServiceImpl implements IAdminService {
 
     @Autowired
-    private AdminRepository adminRepository;
-    @Autowired
-    private RolesRepository rolesRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private EntityManager entityManager;
+    private final AdminRepository adminRepository;
+    private final RolesRepository rolesRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
+    //Class Constructor
+    public AdminServiceImpl(AdminRepository adminRepository, RolesRepository rolesRepository,
+                            PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+        this.adminRepository = adminRepository;
+        this.rolesRepository = rolesRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+
+    }
+
+    @Override
+    public ResponsePojo<AdminEntity> searchAdmin(String firstName, String lastName, String username,
+                                                 String email, String contactNumber) {
+
+        return null;
+    }
 
     //1) Method create Admin
     public ResponsePojo<AdminEntity> CreateAdmin (AdminDto adminDto){
