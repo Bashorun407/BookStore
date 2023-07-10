@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Optional<List<Transaction>> findByUsername(String username);
-    Optional<List<Transaction>> findByInvoiceCode(String invoiceCode);
+    Optional<Transaction> findByInvoiceCode(String invoiceCode);
 }

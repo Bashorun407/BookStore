@@ -3,21 +3,33 @@ package com.akinnova.bookstoredemo.service;
 import com.akinnova.bookstoredemo.Exception.ApiException;
 import com.akinnova.bookstoredemo.dto.CommentDto;
 import com.akinnova.bookstoredemo.entity.Comment;
+import com.akinnova.bookstoredemo.entity.QComment;
 import com.akinnova.bookstoredemo.repository.BookEntityRepository;
 import com.akinnova.bookstoredemo.repository.CommentRepository;
 import com.akinnova.bookstoredemo.repository.CustomerRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class CommentServiceImpl implements ICommentService {
+    @Autowired
+    private EntityManager entityManager;
     private final CommentRepository commentRepository;
     private final CustomerRepository customerRepository;
     private final BookEntityRepository bookEntityRepository;
@@ -128,5 +140,37 @@ public class CommentServiceImpl implements ICommentService {
         commentRepository.delete(comment);
 
         return new ResponseEntity<>("Comment deleted", HttpStatus.OK);
+    }
+
+    //5) Method to search for comments using title or username
+    @Override
+    public ResponsePojo<Page<Comment>> searchComment(String title, String username, Pageable pageable) {
+
+        QComment qComment = QComment.comment1;
+        BooleanBuilder predicate = new BooleanBuilder();
+
+        if(StringUtils.hasText(title))
+            predicate.and(qComment.title.likeIgnoreCase("%" + title + "%"));
+
+        if(StringUtils.hasText(username))
+            predicate.and(qComment.username.likeIgnoreCase("%" + username + "%"));
+
+        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(entityManager);
+        JPAQuery<Comment> jpaQuery = jpaQueryFactory.selectFrom(qComment)
+                .where(predicate)
+                .orderBy(qComment.id.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize());
+
+        //Implementing Pageable response
+        Page<Comment> commentPage = new PageImpl<>(jpaQuery.fetch(), pageable, jpaQuery.fetchCount());
+
+        //ResponsePojo
+        ResponsePojo<Page<Comment>> responsePojo = new ResponsePojo<>();
+        responsePojo.setStatusCode(ResponseUtils.FOUND);
+        responsePojo.setMessage("Comments: ");
+        responsePojo.setData(commentPage);
+
+        return responsePojo;
     }
 }

@@ -9,6 +9,8 @@ import com.akinnova.bookstoredemo.service.CustomerServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,5 +59,15 @@ public class CustomerController {
     @PutMapping("/customer")
     public ResponsePojo<Customer> updateCustomerPassword(@RequestBody UpdateCustomerDto updateCustomerDto) {
         return customerService.updateCustomerPassword(updateCustomerDto);
+    }
+
+    //7) Method to search customer's details using multiple parameters
+    @GetMapping("/search")
+    public ResponsePojo<Page<Customer>> searchCustomer(@RequestParam(name = "firstName", required = false) String firstName,
+                                                       @RequestParam(name = "lastName", required = false) String lastName,
+                                                       @RequestParam(name = "username", required = false) String username,
+                                                       @RequestParam(name = "email", required = false) String email,
+                                                       Pageable pageable) {
+        return customerService.searchCustomer(firstName, lastName, username, email, pageable);
     }
 }

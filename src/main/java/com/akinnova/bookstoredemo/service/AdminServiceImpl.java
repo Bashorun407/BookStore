@@ -1,6 +1,7 @@
 package com.akinnova.bookstoredemo.service;
 
 import com.akinnova.bookstoredemo.Exception.ApiException;
+import com.akinnova.bookstoredemo.entity.QAdminEntity;
 import com.akinnova.bookstoredemo.repository.RolesRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.dto.AdminDto;
@@ -10,7 +11,12 @@ import com.akinnova.bookstoredemo.entity.Roles;
 import com.akinnova.bookstoredemo.repository.AdminRepository;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,9 +25,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.persistence.EntityManager;
+import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,13 +51,6 @@ public class AdminServiceImpl implements IAdminService {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
 
-    }
-
-    @Override
-    public ResponsePojo<AdminEntity> searchAdmin(String firstName, String lastName, String username,
-                                                 String email, String contactNumber) {
-
-        return null;
     }
 
     //1) Method create Admin
@@ -167,5 +168,45 @@ public class AdminServiceImpl implements IAdminService {
         adminRepository.save(adminToDelete);
         return new ResponseEntity<>("Admin has been deleted", HttpStatus.OK);
 
+    }
+
+    //6) A dynamic search using multiple parameters
+    @Override
+    public ResponsePojo<Page<AdminEntity>> searchAdmin(String firstName, String lastName, String username,
+                                                       String email, String contactNumber, Pageable pageable) {
+
+        QAdminEntity qAdminEntity = QAdminEntity.adminEntity;
+        BooleanBuilder predicate = new BooleanBuilder();
+
+        if(StringUtils.hasText(firstName))
+            predicate.and(qAdminEntity.firstName.likeIgnoreCase("%" + firstName + "%"));
+
+        if(StringUtils.hasText(lastName))
+            predicate.and(qAdminEntity.lastName.likeIgnoreCase("%" + lastName + "%"));
+
+        if(StringUtils.hasText(username))
+            predicate.and(qAdminEntity.username.equalsIgnoreCase(username));
+
+        if(StringUtils.hasText(email))
+            predicate.and(qAdminEntity.email.likeIgnoreCase("%" + email + "%"));
+
+        if(StringUtils.hasText(contactNumber))
+            predicate.and(qAdminEntity.contactNumber.eq(contactNumber));
+
+        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(entityManager);
+        JPAQuery<AdminEntity> jpaQuery = jpaQueryFactory.selectFrom(qAdminEntity)
+                .where(predicate.and(qAdminEntity.activeStatus.eq(true)))
+                .orderBy(qAdminEntity.id.asc())
+                .offset(pageable.getNumberOfPages())
+                .limit(pageable.getNumberOfPages());
+
+        Page<AdminEntity> adminEntityPage = new PageImpl<>(jpaQuery.fetch(), (org.springframework.data.domain.Pageable) pageable, jpaQuery.fetchCount());
+
+        ResponsePojo<Page<AdminEntity>> responsePojo = new ResponsePojo<>();
+        responsePojo.setStatusCode(ResponseUtils.FOUND);
+        responsePojo.setMessage("Admin pages:");
+        responsePojo.setData(adminEntityPage);
+
+        return responsePojo;
     }
 }

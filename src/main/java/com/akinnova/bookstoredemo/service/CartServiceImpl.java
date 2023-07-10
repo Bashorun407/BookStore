@@ -5,22 +5,34 @@ import com.akinnova.bookstoredemo.Exception.ApiException;
 import com.akinnova.bookstoredemo.dto.CartDto;
 import com.akinnova.bookstoredemo.entity.BookEntity;
 import com.akinnova.bookstoredemo.entity.Cart;
+import com.akinnova.bookstoredemo.entity.QCart;
 import com.akinnova.bookstoredemo.repository.BookEntityRepository;
 import com.akinnova.bookstoredemo.repository.CartRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CartServiceImpl {
+public class CartServiceImpl implements  ICartService{
 
+    @Autowired
+    private EntityManager entityManager;
     private final CartRepository cartRepository;
     private final BookEntityRepository bookEntityRepository;
 
@@ -115,6 +127,43 @@ public class CartServiceImpl {
         //Remove item from cart in database
         cartRepository.delete(itemOptional.get());
         return new ResponseEntity<>("Item removed from Cart", HttpStatus.GONE);
+    }
+
+    //5) Method to search cart using multiple parameters
+    @Override
+    public ResponsePojo<Page<Cart>> searchCart(String username, String title, String serialNumber,
+                                               String cartItemNumber, Pageable pageable) {
+        QCart qCart = QCart.cart;
+        BooleanBuilder predicate = new BooleanBuilder();
+
+        if(StringUtils.hasText(username))
+            predicate.and(qCart.username.likeIgnoreCase("%" + username + "%"));
+
+        if(StringUtils.hasText(title))
+            predicate.and(qCart.title.likeIgnoreCase("%" + title + "%"));
+
+        if(StringUtils.hasText(serialNumber))
+            predicate.and(qCart.serialNumber.eq(serialNumber));
+
+        if(StringUtils.hasText(cartItemNumber))
+            predicate.and(qCart.cartItemNumber.eq(cartItemNumber));
+
+        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(entityManager);
+        JPAQuery<Cart> jpaQuery = jpaQueryFactory.selectFrom(qCart)
+                .where(predicate.and(qCart.checkOut.eq(false)))
+                .orderBy(qCart.id.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize());
+
+        Page<Cart> cartPage = new PageImpl<>(jpaQuery.fetch(), pageable, jpaQuery.fetchCount());
+
+        //ResponsePoJo
+        ResponsePojo<Page<Cart>> responsePojo = new ResponsePojo<>();
+        responsePojo.setStatusCode(ResponseUtils.FOUND);
+        responsePojo.setMessage("Cart items: ");
+        responsePojo.setData(cartPage);
+
+        return responsePojo;
     }
 
 }

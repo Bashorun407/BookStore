@@ -7,12 +7,21 @@ import com.akinnova.bookstoredemo.dto.UpdateCustomerDto;
 import com.akinnova.bookstoredemo.email.emailDto.EmailDetail;
 import com.akinnova.bookstoredemo.email.emailService.EmailService;
 import com.akinnova.bookstoredemo.entity.Customer;
+import com.akinnova.bookstoredemo.entity.QComment;
+import com.akinnova.bookstoredemo.entity.QCustomer;
 import com.akinnova.bookstoredemo.entity.Roles;
 import com.akinnova.bookstoredemo.repository.CustomerRepository;
 import com.akinnova.bookstoredemo.repository.RolesRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,12 +30,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class CustomerServiceImpl implements ICustomerService {
+
+    @Autowired
+    private EntityManager entityManager;
     private final CustomerRepository customerRepository;
     private final RolesRepository rolesRepository;
     private final AuthenticationManager authenticationManager;
@@ -173,4 +187,44 @@ public class CustomerServiceImpl implements ICustomerService {
         responsePojo.setData(customerToUpdate);
         return responsePojo;
     }
+
+    //7) Method to search customer's details using multiple parameters
+    @Override
+    public ResponsePojo<Page<Customer>> searchCustomer(String firstName, String lastName, String username,
+                                                       String email, Pageable pageable) {
+
+        QCustomer qCustomer = QCustomer.customer;
+        BooleanBuilder predicate = new BooleanBuilder();
+
+        if(StringUtils.hasText(firstName))
+            predicate.and(qCustomer.firstName.likeIgnoreCase("%" + firstName + "%"));
+
+        if(StringUtils.hasText(lastName))
+            predicate.and(qCustomer.lastName.likeIgnoreCase("%" + lastName + "%"));
+
+        if(StringUtils.hasText(username))
+            predicate.and(qCustomer.username.likeIgnoreCase("%" + username + "%"));
+
+        if(StringUtils.hasText(email))
+            predicate.and(qCustomer.email.likeIgnoreCase("%" + email + "%"));
+
+        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(entityManager);
+        JPAQuery<Customer> jpaQuery = jpaQueryFactory.selectFrom(qCustomer)
+                .where(predicate)
+                .orderBy(qCustomer.id.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize());
+
+        //Pageable customer response
+        Page<Customer> customerPage = new PageImpl<>(jpaQuery.fetch(), pageable, jpaQuery.fetchCount());
+
+        //Response POJO
+        ResponsePojo<Page<Customer>> responsePojo = new ResponsePojo<>();
+        responsePojo.setStatusCode(ResponseUtils.FOUND);
+        responsePojo.setMessage("Customers: ");
+        responsePojo.setData(customerPage);
+
+        return responsePojo;
+    }
+
 }

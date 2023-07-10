@@ -5,6 +5,8 @@ import com.akinnova.bookstoredemo.entity.Comment;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.service.CommentServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,5 +46,13 @@ public class CommentController {
     @DeleteMapping("/auth/comment")
     public ResponseEntity<?> deleteComment(@RequestBody CommentDto commentDto){
         return commentService.deleteComment(commentDto);
+    }
+
+    //5) Method to search for comments using title or username
+    @GetMapping("/search")
+    public ResponsePojo<Page<Comment>> searchComment(@RequestParam(name = "title", required = false) String title,
+                                                     @RequestParam(name = "username", required = false) String username,
+                                                     Pageable pageable) {
+        return commentService.searchComment(title, username, pageable);
     }
 }

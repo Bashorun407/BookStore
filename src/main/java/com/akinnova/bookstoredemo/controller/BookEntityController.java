@@ -6,6 +6,8 @@ import com.akinnova.bookstoredemo.entity.BookEntity;
 import com.akinnova.bookstoredemo.service.BookEntityServiceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -55,5 +57,15 @@ public class BookEntityController {
     @DeleteMapping("/book/{id}")
     public ResponsePojo<String> deleteBook(@PathVariable Long id){
         return bookStoreService.deleteBook(id);
+    }
+
+    //9) Method to search book by multiple parameters
+    @GetMapping("auth/search")
+    public ResponsePojo<Page<BookEntity>> searchBook(@RequestParam(name = "title", required = false) String title,
+                                                     @RequestParam(name = "author", required = false) String author,
+                                                     @RequestParam(name = "genre", required = false) String genre,
+                                                     @RequestParam(name = "serialNumber", required = false) String serialNumber,
+                                                     Pageable pageable) {
+        return bookStoreService.searchBook(title, author, genre, serialNumber, pageable);
     }
 }

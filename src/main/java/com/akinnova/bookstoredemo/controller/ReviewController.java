@@ -33,6 +33,7 @@ public class ReviewController {
     public ResponseEntity<?> rateBook(@RequestBody RateDto rateDto) {
         return reviewService.rateBook(rateDto);
     }
+
     //2) Method to retrieve reviews on specific book title
     @GetMapping("/titleReviews/{title}")
     public ResponsePojo<List<Review>> titleReviews(@PathVariable String title) {

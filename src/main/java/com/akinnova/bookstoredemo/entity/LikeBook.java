@@ -24,7 +24,8 @@ public class LikeBook implements Serializable {
     private Integer likes;
     //@Value("#{${my.int.property:0}}")
     private Long totalLikes;
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "book_likes_review",
             joinColumns = @JoinColumn(name = "likes", referencedColumnName = "totalLikes"),
             inverseJoinColumns = @JoinColumn(name = "book", referencedColumnName = "title")

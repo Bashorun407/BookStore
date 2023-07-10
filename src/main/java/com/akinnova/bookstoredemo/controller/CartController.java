@@ -5,6 +5,8 @@ import com.akinnova.bookstoredemo.entity.Cart;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.service.CartServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,6 +41,16 @@ public class CartController {
     @DeleteMapping("/delCart/{serialNumber}")
     public ResponseEntity<?> removeFromCart(@PathVariable(name = "serialNumber") String serialNumber) {
         return cartService.removeFromCart(serialNumber);
+    }
+
+    //5) Method to search cart using multiple parameters
+    @GetMapping("/search")
+    public ResponsePojo<Page<Cart>> searchCart(@RequestParam(name = "username", required = false) String username,
+                                               @RequestParam(name = "title", required = false) String title,
+                                               @RequestParam(name = "serialNumber", required = false) String serialNumber,
+                                               @RequestParam(name = "cartItemNumber", required = false) String cartItemNumber,
+                                               Pageable pageable) {
+        return cartService.searchCart(username, title, serialNumber, cartItemNumber, pageable);
     }
 }
 
