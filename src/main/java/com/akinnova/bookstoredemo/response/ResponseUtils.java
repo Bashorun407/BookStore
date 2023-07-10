@@ -101,6 +101,10 @@ public class ResponseUtils {
 
     //Compact form of rateFunction
     public int ratoFunc(int rate){
-       return (rate >= 1 && rate <= 5) ? rate : 0;
+        return (rate >= 1 && rate <= 5) ? rate : 0;
     }
+
+
+
+
 }

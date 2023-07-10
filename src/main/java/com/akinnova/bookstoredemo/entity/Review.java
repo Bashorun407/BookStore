@@ -25,7 +25,7 @@ public class Review implements Serializable {
     private Long totalLikes;
     //averageRating may or may not contain a double
     private Double averageRating = Double.sum(0, 0);
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "book_review",
             joinColumns = @JoinColumn(name = "review", referencedColumnName = "totalLikes"),
             inverseJoinColumns = @JoinColumn(name = "book", referencedColumnName = "title")

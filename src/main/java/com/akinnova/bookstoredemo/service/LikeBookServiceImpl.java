@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class LikeBookServiceImpl implements ILikeBookService{
@@ -45,8 +46,13 @@ public class LikeBookServiceImpl implements ILikeBookService{
             throw new ApiException(String.format("User with username: %s does not exist", likeDto.getUsername()));
         }
 
+        //Check the repository if there is already a comment by username on the topic
+        List<LikeBook> likeBookList = likeBookRepository.findByTitle(likeDto.getTitle()).get().stream()
+                .filter(x -> x.getUsername().equals(likeDto.getUsername())).collect(Collectors.toList());
+
         //If user has not reviewed any book prior, create a new review for user
-        if(!likeBookRepository.existsByUsername(likeDto.getUsername())){
+        //(i.e.) User does not exist and book title does not already exist
+        if(likeBookList.isEmpty()){
             //new review
             LikeBook review = LikeBook.builder()
                     .username(likeDto.getUsername())
@@ -65,24 +71,45 @@ public class LikeBookServiceImpl implements ILikeBookService{
             likeBookRepository.save(review);
         }
 
+        //For a user to set like for another book title even if they have liked another book
         //If user has reviewed a book before, retrieve the exact record and edit
-        else if (likeBookRepository.existsByUsername(likeDto.getUsername()) && likeBookRepository.existsByTitle(likeDto.getTitle())) {
+        //(i.e. username exists but title does not)
+
+
+        //If user has reviewed a book before, retrieve the exact record for that book and edit it
+        //(i.e. Username exists and title exists)
+        else if (!likeBookList.isEmpty()) {
 
             LikeBook updatedLike = likeBookRepository.findByTitle(likeDto.getTitle()).get().stream()
                     .filter(x -> x.getUsername().equals(likeDto.getUsername()))
                     .findFirst()
                     .map(review -> {
-                        //If user already liked a book and presses like again, it becomes unlike.
-                        //Set the like to 0 if re
-                        review.setLikes(ResponseUtils.likeFunction(likeDto.getLikes()));
-                        if (review.getLikes().equals(1)) {
 
-                            //Decrease total likes by 1
-                            review.setTotalLikes(review.getTotalLikes() + 1);
+                        //if review.getLike's value is 1, increment setTotalLikes
+                        if (review.getLikes().equals(1)) {
+                            //Set the value of like as the value the likeDto passes
+                            review.setLikes(ResponseUtils.likeFunction(likeDto.getLikes()));
+
+                            //Save the change in the Review Repository
+                            likeBookRepository.save(review);
+                            //review.setTotalLikes(review.getTotalLikes() + 1);
+
+                            //Set total likes
+                            review.setTotalLikes(((long) likeBookRepository.findByTitle(review.getTitle()).get()
+                                    .stream().mapToInt(LikeBook::getLikes).sum()));
+
+
                         } else if(review.getLikes().equals(0)) {
 
-                            //Increase total likes by 1
-                            review.setTotalLikes(review.getTotalLikes() - 1);
+                            //Set the value of like as the value the likeDto passes
+                            review.setLikes(ResponseUtils.likeFunction(likeDto.getLikes()));
+
+                            //Save the change in the Review Repository
+                            likeBookRepository.save(review);
+
+                            //Set total likes
+                            review.setTotalLikes(((long) likeBookRepository.findByTitle(review.getTitle()).get()
+                                    .stream().mapToInt(LikeBook::getLikes).sum()) - 1);
                         }
                         return review;
                     }).get();
