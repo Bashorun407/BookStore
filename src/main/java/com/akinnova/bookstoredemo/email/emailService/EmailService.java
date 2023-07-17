@@ -64,6 +64,6 @@ public class EmailService implements IEmailService{
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
-        return null;
+        return new ResponseEntity<>("Mime mail sent successfully", HttpStatus.GONE);
     }
 }

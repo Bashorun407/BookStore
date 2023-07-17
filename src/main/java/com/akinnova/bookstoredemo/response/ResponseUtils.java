@@ -84,6 +84,22 @@ public class ResponseUtils {
         return invoiceCode;
     }
 
+    //Method to generate unique identifier in Transaction Service layer
+    public static String generateUniqueIdentifier(int len, String username){
+        String invoiceCode = ""; //newly generated invoice-code will be stored in this variable
+        char[] numChar = new char[len]; //Character array that will hold a maximum of 'len' characters
+        Random random = new Random();
+        int x = 0; //x will contain new random number generated
+
+        for (int i = 0; i < len; i++){
+            x = random.nextInt(1, 6); //random numbers generated will be from (1 - 6)
+            numChar[i] = Integer.toString(x).toCharArray()[0];
+        }
+        //Invoice will be a combination of the first 3-characters of username with randomly generated digits
+        invoiceCode = username.substring(0, 2) + new String(numChar);
+        return invoiceCode;
+    }
+
     //Method to generate Like in Review Service class
     public static int likeFunction(int like) {
         return like == 1 ? 1 : 0;

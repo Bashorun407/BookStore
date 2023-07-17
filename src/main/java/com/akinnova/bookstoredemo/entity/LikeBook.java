@@ -21,7 +21,8 @@ public class LikeBook implements Serializable {
     private Long id;
     private String username;
     private String title;
-    private Integer likes;
+    private Boolean likes = true;
+    private String likeSpecNum;
     //@Value("#{${my.int.property:0}}")
     private Long totalLikes;
 

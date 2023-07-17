@@ -19,7 +19,7 @@ public class Review implements Serializable {
     private Long id;
     private String username;
     private String title;
-    private Integer likes = 0;
+    private Boolean likes = false;
     private Integer starRating = 0;
     //@Value("#{${my.int.property:0}}")
     private Long totalLikes;

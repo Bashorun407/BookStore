@@ -29,6 +29,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize->
                         authorize.regexMatchers(HttpMethod.POST, "/api/v1/bookstore/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.GET, "/api/v1/bookstore/auth/(.*)").permitAll()
@@ -64,7 +65,7 @@ public class SecurityConfig {
     }
 
 
-//  The following method was the original implementation
+ // The following method was the original implementation
 //    @Bean
 //    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
 //        httpSecurity
