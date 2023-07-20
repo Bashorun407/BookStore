@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -19,12 +20,10 @@ public class LikeBook implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String username;
     private String title;
     private Boolean likes = true;
-    private String likeSpecNum;
-    //@Value("#{${my.int.property:0}}")
     private Long totalLikes;
+    private LocalDateTime dateTimeOfLike;
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "book_likes_review",

@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface ILikeBookService {
     ResponseEntity<?> likeBook(LikeDto likeDto);
-    ResponsePojo<List<LikeBook>> titleLikes(String title);
+    ResponsePojo<LikeBook> titleLikes(String title);
     ResponsePojo<List<LikeBook>> allLikes();
 }

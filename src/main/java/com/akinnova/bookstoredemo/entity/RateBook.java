@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -19,10 +20,11 @@ public class RateBook implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String username;
     private String title;
-    private Integer starRating;
+    private Integer starRating = 0;
+    private Long rateCount;
     private Double averageRating;
+    private LocalDateTime rateTime;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "book_review",
             joinColumns = @JoinColumn(name = "rating", referencedColumnName = "averageRating"),

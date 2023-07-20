@@ -9,8 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface LikeBookRepository extends JpaRepository<LikeBook, Long> {
-    Boolean existsByUsername(String username);
+
     Boolean existsByTitle(String title);
-    Optional<List<LikeBook>> findByUsername(String username);
-    Optional<List<LikeBook>> findByTitle(String title);
+    Optional<LikeBook> findByTitle(String title);
 }

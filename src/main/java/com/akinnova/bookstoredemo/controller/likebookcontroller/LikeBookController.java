@@ -27,7 +27,7 @@ public class LikeBookController {
 
     //2) Method to retrieve likes on specific book title
     @GetMapping("/titleLikes/{title}")
-    public ResponsePojo<List<LikeBook>> titleLikes(@PathVariable(name = "title") String title) {
+    public ResponsePojo<LikeBook> titleLikes(@PathVariable(name = "title") String title) {
         return likeBookService.titleLikes(title);
     }
 
