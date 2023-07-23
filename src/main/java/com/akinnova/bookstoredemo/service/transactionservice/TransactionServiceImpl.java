@@ -1,20 +1,17 @@
 package com.akinnova.bookstoredemo.service.transactionservice;
 
 import com.akinnova.bookstoredemo.Exception.ApiException;
-import com.akinnova.bookstoredemo.dto.cartdto.CartItemPurchaseDto;
+import com.akinnova.bookstoredemo.dto.transactiondto.CartItemPurchaseDto;
 import com.akinnova.bookstoredemo.email.emailDto.EmailDetail;
 import com.akinnova.bookstoredemo.email.emailService.EmailService;
-import com.akinnova.bookstoredemo.entity.BookEntity;
-import com.akinnova.bookstoredemo.entity.Cart;
-import com.akinnova.bookstoredemo.entity.QTransaction;
-import com.akinnova.bookstoredemo.entity.Transaction;
+import com.akinnova.bookstoredemo.entity.*;
 import com.akinnova.bookstoredemo.repository.BookEntityRepository;
 import com.akinnova.bookstoredemo.repository.CartRepository;
+import com.akinnova.bookstoredemo.repository.CustomerRepository;
 import com.akinnova.bookstoredemo.repository.TransactionRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
 
-import com.akinnova.bookstoredemo.service.transactionservice.ITransactionService;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -38,14 +35,17 @@ public class TransactionServiceImpl implements ITransactionService {
 
     @Autowired
     private EntityManager entityManager;
+    private final CustomerRepository customerRepository;
     private final TransactionRepository transactionRepository;
     private final CartRepository cartRepository;
     private final BookEntityRepository bookEntityRepository;
     private final EmailService emailService;
 
     //Class Constructor
-    public TransactionServiceImpl(TransactionRepository transactionRepository, CartRepository cartRepository,
+    public TransactionServiceImpl(CustomerRepository customerRepository, TransactionRepository transactionRepository,
+                                    CartRepository cartRepository,
                                   BookEntityRepository bookEntityRepository, EmailService emailService) {
+        this.customerRepository = customerRepository;
         this.transactionRepository = transactionRepository;
         this.cartRepository = cartRepository;
         this.bookEntityRepository = bookEntityRepository;
@@ -57,6 +57,8 @@ public class TransactionServiceImpl implements ITransactionService {
     public ResponsePojo<Transaction> cashPayment(CartItemPurchaseDto cartItemPurchaseDto) {
 
         // TODO: 7/2/2023 (Retrieve cart items, change checkout status to true and make payment via customer card
+        //To retrieve customer details from customer repository
+        Customer customer = customerRepository.findByUsername(cartItemPurchaseDto.getUsername()).get();
         //to retrieve cart items using username
         List<Cart> cartList = cartRepository.findByUsername(cartItemPurchaseDto.getUsername()).get();
 
@@ -96,14 +98,14 @@ public class TransactionServiceImpl implements ITransactionService {
         //Send email to notify payment to customer
         EmailDetail emailDetail = EmailDetail.builder()
                 .subject("Successful Purchase From Akinova BookStores")
-                                .body("Dear " + cartItemPurchaseDto.getName() +
+                                .body("Dear " + customer.getLastName() + ", " + customer.getFirstName() +
                                 "\n You received this notification from a purchase you made on our online bookstore.\n"
                                 + "Details of purchase are :"
                                         + "\n Cost of purchase: " + amountPaid
                                         + "\n Balance: " + cartItemPurchaseDto.getBalance().toString()
                                         + "\n Thank you for patronizing us."
                                 + "\n\n Akinnova BookStore."  )
-                .recipient(cartItemPurchaseDto.getEmail())
+                .recipient(customer.getEmail())
                 .build();
         emailService.sendSimpleEmail(emailDetail);
 

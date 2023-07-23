@@ -85,7 +85,7 @@ public class LikeBookServiceImpl implements ILikeBookService {
         if(ObjectUtils.isEmpty(likeBook))
             return new ResponseEntity<>(String.format("Likes for book with title: %s not found", title), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(String.format("Likes for book with title %s: ", title), HttpStatus.OK);
+        return new ResponseEntity<>(String.format("Likes for book with title %s: %d", title, likeBook.getTotalLikes()), HttpStatus.OK);
     }
 
     //3) Method to retrieve all book-likes in the database
@@ -94,11 +94,12 @@ public class LikeBookServiceImpl implements ILikeBookService {
 
         //To retrieve all reviews in the review database
         List<LikeBook> likeBookList = likeBookRepository.findAll();
+        long totalLikes = likeBookList.stream().mapToLong(LikeBook::getTotalLikes).sum();
 
         if (likeBookList.isEmpty())
             return new ResponseEntity<>("No likes yet ", HttpStatus.NO_CONTENT);
 
-        return new ResponseEntity<>("All likes: ", HttpStatus.OK);
+        return new ResponseEntity<>(String.format("Total likes for all books is: %d ", totalLikes), HttpStatus.OK);
     }
 
 }

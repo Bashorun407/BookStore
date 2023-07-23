@@ -31,16 +31,16 @@ public class CartController {
         return cartService.getCartItemByUsername(username);
     }
 
-    //3) Method to update Item in cart
+    //3) Method to update Item in cart...This method is similar to CreateCart so, may not be necessary
     @PutMapping("/updateCart")
     public ResponsePojo<Cart> updateCartItem(@RequestBody CartDto cartDto) {
         return cartService.updateCartItem(cartDto);
     }
 
     //4) Method to delete/remove item from cart
-    @DeleteMapping("/delCart/{serialNumber}")
-    public ResponseEntity<?> removeFromCart(@PathVariable(name = "serialNumber") String serialNumber) {
-        return cartService.removeFromCart(serialNumber);
+    @DeleteMapping("/delCart/{title}")
+    public ResponseEntity<?> removeFromCart(@PathVariable(name = "title") String title) {
+        return cartService.removeFromCart(title);
     }
 
     //5) Method to search cart using multiple parameters

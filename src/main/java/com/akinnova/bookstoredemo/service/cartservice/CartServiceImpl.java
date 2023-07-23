@@ -105,8 +105,7 @@ public class CartServiceImpl implements ICartService {
     }
 
 
-//3) Method to update Item in cart
-// TODO: 7/5/2023 Cart needs some improvement 
+//3) Method to update Item in cart...This method is similar to CreateCart; so, may not be necessary
     public ResponsePojo<Cart> updateCartItem(CartDto cartDto) {
         //Fetching book entity
         Optional<BookEntity> bookOptional =  bookEntityRepository.findBookByTitle(cartDto.getTitle());

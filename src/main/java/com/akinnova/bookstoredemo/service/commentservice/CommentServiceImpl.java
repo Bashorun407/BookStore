@@ -1,6 +1,7 @@
 package com.akinnova.bookstoredemo.service.commentservice;
 
 import com.akinnova.bookstoredemo.Exception.ApiException;
+import com.akinnova.bookstoredemo.dto.commentdto.CommentDeleteDto;
 import com.akinnova.bookstoredemo.dto.commentdto.CommentDto;
 import com.akinnova.bookstoredemo.entity.Comment;
 import com.akinnova.bookstoredemo.entity.QComment;
@@ -8,7 +9,6 @@ import com.akinnova.bookstoredemo.repository.BookEntityRepository;
 import com.akinnova.bookstoredemo.repository.CommentRepository;
 import com.akinnova.bookstoredemo.repository.CustomerRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
-import com.akinnova.bookstoredemo.response.ResponseUtils;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -70,7 +70,7 @@ public class CommentServiceImpl implements ICommentService {
         List<Comment> commentList = commentRepository.findByUsername(username).get();
 
         if(commentList.isEmpty())
-            return new ResponseEntity<>(String.format("Comments by %s found.", username), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(String.format("Comments by %s not found.", username), HttpStatus.NOT_FOUND);
 
         return new ResponseEntity<>(commentList, HttpStatus.FOUND);
     }
@@ -82,7 +82,7 @@ public class CommentServiceImpl implements ICommentService {
         List<Comment> commentList = commentRepository.findByTitle(title).get();
 
         if(commentList.isEmpty())
-            return new ResponseEntity<>(String.format("Comments by %s found.", title), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(String.format("Comments on book titled: %s not found.", title), HttpStatus.NOT_FOUND);
 
         return new ResponseEntity<>(commentList, HttpStatus.FOUND);
 
@@ -102,22 +102,22 @@ public class CommentServiceImpl implements ICommentService {
 
     //4) Method to delete comments by username
     @Override
-    public ResponseEntity<?> deleteComment(CommentDto commentDto){
+    public ResponseEntity<?> deleteComment(CommentDeleteDto commentDeleteDto){
         //To check that customer is registered and is in the customer database
-        if(!customerRepository.existsByUsername(commentDto.getUsername())){
+        if(!customerRepository.existsByUsername(commentDeleteDto.getUsername())){
             throw new ApiException(String.format("User with this username: %s is not allowed. Ensure to register first.",
-                    commentDto.getUsername()));
+                    commentDeleteDto.getUsername()));
         }
 
         //To check that book that will be comment on still exists
-        if(!bookEntityRepository.existsByTitle(commentDto.getTitle())) {
+        if(!bookEntityRepository.existsByTitle(commentDeleteDto.getTitle())) {
             throw new ApiException(String.format("Book with this title: %s does not exist.",
-                    commentDto.getTitle()));
+                    commentDeleteDto.getTitle()));
         }
 
         //Retrieves all comments on a book by customers/users
-        Optional<List<Comment>> commentList = commentRepository.findByTitle(commentDto.getTitle());
-        commentList.orElseThrow(()->new ApiException(String.format("There are no comments on this book titled: %s.", commentDto.getTitle())));
+        Optional<List<Comment>> commentList = commentRepository.findByTitle(commentDeleteDto.getTitle());
+        commentList.orElseThrow(()->new ApiException(String.format("There are no comments on this book titled: %s.", commentDeleteDto.getTitle())));
 
         List<Comment> comments = commentList.get();
         Comment comment = comments.stream().findFirst().get();

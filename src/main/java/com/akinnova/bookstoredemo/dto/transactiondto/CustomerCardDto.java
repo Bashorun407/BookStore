@@ -7,7 +7,8 @@ import lombok.Data;
 @Data
 @Builder
 public class CustomerCardDto {
-    private String name;
+    private String firstName;
+    private String lastName;
     private String atmNumber;
     private String atmPin;
     private Double balance;

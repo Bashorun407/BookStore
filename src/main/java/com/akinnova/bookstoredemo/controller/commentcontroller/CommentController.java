@@ -1,5 +1,6 @@
 package com.akinnova.bookstoredemo.controller.commentcontroller;
 
+import com.akinnova.bookstoredemo.dto.commentdto.CommentDeleteDto;
 import com.akinnova.bookstoredemo.dto.commentdto.CommentDto;
 import com.akinnova.bookstoredemo.entity.Comment;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
@@ -25,13 +26,13 @@ public class CommentController {
     }
 
     //2) Method to view comments by a username
-    @GetMapping("/comment/{username}")
+    @GetMapping("/auth/commentUser/{username}")
     public ResponseEntity<?> commentByUsername(@PathVariable(name = "username") String username) {
         return commentService.commentByUsername(username);
     }
 
     //2b) Method to view comments on a book title
-    @GetMapping("/auth/comment/{title}")
+    @GetMapping("/auth/commentTitle/{title}")
     public ResponseEntity<?> commentByTitle(@PathVariable(name = "title") String title) {
         return commentService.commentByTitle(title);
     }
@@ -44,12 +45,12 @@ public class CommentController {
 
     //4) Method to delete comments by username
     @DeleteMapping("/auth/comment")
-    public ResponseEntity<?> deleteComment(@RequestBody CommentDto commentDto){
-        return commentService.deleteComment(commentDto);
+    public ResponseEntity<?> deleteComment(@RequestBody CommentDeleteDto commentDeleteDto){
+        return commentService.deleteComment(commentDeleteDto);
     }
 
     //5) Method to search for comments using title or username
-    @GetMapping("/search")
+    @GetMapping("auth/search")
     public ResponseEntity<?> searchComment(@RequestParam(name = "title", required = false) String title,
                                                      @RequestParam(name = "username", required = false) String username,
                                                      Pageable pageable) {

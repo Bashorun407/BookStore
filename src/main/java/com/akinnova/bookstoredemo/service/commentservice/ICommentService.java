@@ -1,5 +1,6 @@
 package com.akinnova.bookstoredemo.service.commentservice;
 
+import com.akinnova.bookstoredemo.dto.commentdto.CommentDeleteDto;
 import com.akinnova.bookstoredemo.dto.commentdto.CommentDto;
 import com.akinnova.bookstoredemo.entity.Comment;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
@@ -14,7 +15,7 @@ public interface ICommentService {
     ResponseEntity<?> commentByUsername(String username);
     ResponseEntity<?> commentByTitle(String title);
     ResponseEntity<?> allComments();
-    ResponseEntity<?> deleteComment(CommentDto commentDto);
+    ResponseEntity<?> deleteComment(CommentDeleteDto commentDeleteDto);
     ResponseEntity<?> searchComment(String title, String username, Pageable pageable);
 
 }

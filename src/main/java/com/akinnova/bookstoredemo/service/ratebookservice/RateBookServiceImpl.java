@@ -98,7 +98,8 @@ public class RateBookServiceImpl implements IRateBookService {
             return new ResponseEntity<>(String.format("There are no reviews for book with this title %s: yet", title),
                     HttpStatus.NO_CONTENT);
 
-        return new ResponseEntity<>(rateBook, HttpStatus.FOUND);
+        return new ResponseEntity<>(String.format("Rate for book title %s: %f from %d users", title, rateBook.getAverageRating(),
+                rateBook.getRateCount() ), HttpStatus.FOUND);
     }
 
     //3) Method to retrieve all reviews in the database

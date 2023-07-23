@@ -1,16 +1,13 @@
 package com.akinnova.bookstoredemo.controller.transactioncontroller;
 
-import com.akinnova.bookstoredemo.dto.cartdto.CartItemPurchaseDto;
+import com.akinnova.bookstoredemo.dto.transactiondto.CartItemPurchaseDto;
 import com.akinnova.bookstoredemo.entity.Transaction;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.service.transactionservice.TransactionServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/transaction/auth")
