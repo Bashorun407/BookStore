@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface IRateBookService {
     ResponseEntity<?> rateBook(RateDto rateDto);
-    ResponsePojo<RateBook> titleRates(String title);
-    ResponsePojo<List<RateBook>> allRates();
+    ResponseEntity<?> titleRates(String title);
+    ResponseEntity<?> allRates();
 }

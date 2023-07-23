@@ -1,4 +1,4 @@
-package com.akinnova.bookstoredemo.dto.cartdto;
+package com.akinnova.bookstoredemo.dto.transactiondto;
 
 import lombok.Builder;
 import lombok.Data;

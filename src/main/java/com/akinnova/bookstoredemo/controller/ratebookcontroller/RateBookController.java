@@ -29,13 +29,13 @@ public class RateBookController {
 
     //2) Method to retrieve reviews on specific book title
     @GetMapping("/titleRates/{title}")
-    public ResponsePojo<RateBook> titleRates(@PathVariable(name = "title") String title) {
+    public ResponseEntity<?> titleRates(@PathVariable(name = "title") String title) {
         return rateBookService.titleRates(title);
     }
 
     //3) Method to retrieve all reviews in the database
     @GetMapping("/allRates")
-    public ResponsePojo<List<RateBook>> allRates() {
+    public ResponseEntity<?> allRates() {
         return rateBookService.allRates();
     }
 }

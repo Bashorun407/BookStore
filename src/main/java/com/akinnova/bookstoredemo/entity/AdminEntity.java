@@ -21,6 +21,7 @@ public class AdminEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String imageAddress;
     private String firstName;
     private String lastName;
     private String username;

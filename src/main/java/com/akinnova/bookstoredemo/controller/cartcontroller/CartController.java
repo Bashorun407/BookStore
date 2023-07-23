@@ -27,7 +27,7 @@ public class CartController {
 
     //2) Method to retrieve all items in cart by username (i.e. for a username)
     @GetMapping("/cartItems/{username}")
-    public ResponsePojo<List<Cart>> getCartItemByUsername(@PathVariable(name = "username") String username) {
+    public ResponseEntity<?> getCartItemByUsername(@PathVariable(name = "username") String username) {
         return cartService.getCartItemByUsername(username);
     }
 
@@ -45,7 +45,7 @@ public class CartController {
 
     //5) Method to search cart using multiple parameters
     @GetMapping("/search")
-    public ResponsePojo<Page<Cart>> searchCart(@RequestParam(name = "username", required = false) String username,
+    public ResponseEntity<?> searchCart(@RequestParam(name = "username", required = false) String username,
                                                @RequestParam(name = "title", required = false) String title,
                                                @RequestParam(name = "serialNumber", required = false) String serialNumber,
                                                @RequestParam(name = "cartItemNumber", required = false) String cartItemNumber,

@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class AdminDto {
+    private String imageAddress;
     private String firstName;
     private String lastName;
     private String username;

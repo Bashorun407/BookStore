@@ -14,11 +14,5 @@ import java.time.LocalDateTime;
 public class CartDto {
     private String username;
     private String title;
-    private String serialNumber;
-    private String cartItemNumber;
-    private Double price;
-    private Integer quantity;
-    private Double amountToPay;
-    private Boolean checkOut;
-    private LocalDateTime timeCheckedIn;
+
 }

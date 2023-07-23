@@ -35,7 +35,7 @@ public class AdminController {
 
     //2) Method to get all Admins
     @GetMapping("/allAdmin")
-    public ResponsePojo<List<AdminEntity>> findAllAdmin(){
+    public ResponseEntity<?> findAllAdmin(){
         return adminService.findAllAdmin();
     }
 
@@ -54,7 +54,7 @@ public class AdminController {
 
     //4) Method to update Admin Status
     @PutMapping("/admin")
-    public ResponseEntity<?> updateAdmin(@RequestBody AdminDto adminDto){
+    public ResponsePojo<AdminEntity> updateAdmin(@RequestBody AdminDto adminDto){
         return adminService.updateAdmin(adminDto);
     }
 
@@ -66,12 +66,11 @@ public class AdminController {
 
     //6) A dynamic search using multiple parameters
     @GetMapping("/search")
-    public ResponsePojo<Page<AdminEntity>> searchAdmin(@RequestParam(name = "firstName", required = false) String firstName,
+    public ResponseEntity<?> searchAdmin(@RequestParam(name = "firstName", required = false) String firstName,
                                                        @RequestParam(name = "lastName", required = false) String lastName,
                                                        @RequestParam(name = "username", required = false) String username,
                                                        @RequestParam(name = "email", required = false) String email,
-                                                       @RequestParam(name = "contactNumber", required = false) String contactNumber,
-                                                       Pageable pageable) {
-        return adminService.searchAdmin(firstName, lastName, username, email, contactNumber, pageable);
+                                                       @RequestParam(name = "contactNumber", required = false) String contactNumber){
+        return adminService.searchAdmin(firstName, lastName, username, email, contactNumber);
     }
 }

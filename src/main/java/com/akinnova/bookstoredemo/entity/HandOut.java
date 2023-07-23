@@ -1,35 +1,37 @@
 package com.akinnova.bookstoredemo.entity;
-import javax.persistence.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.math.BigDecimal;
+import javax.persistence.*;
 import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
 @Entity
-@Table(name = "book_table", uniqueConstraints = {
+@Table(name = "handout", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "courseCode"),
+        @UniqueConstraint(columnNames = "courseTitle"),
         @UniqueConstraint(columnNames = "serialNumber")
 })
-public class BookEntity {
+public class HandOut {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String imageAddress;
-    private String title;
-    private String author;
-    private String genre;
+    private String schoolName;
+    private String faculty;
+    private String department;
+    private String level;
+    private String courseCode;
+    private String courseTitle;
     private String summary;
     private String serialNumber;
-    private String edition;
-    private Integer volume;
-    private Long quantity;
-    private Double price;
     @CreationTimestamp
     private LocalDateTime supplyDate;
     private Boolean deleteStatus;

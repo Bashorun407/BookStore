@@ -65,10 +65,17 @@ public class RateBookServiceImpl implements IRateBookService {
 
         //If user has reviewed a book before, retrieve the exact record and edit
         RateBook userRate = rateBookRepository.findByTitle(rateDto.getTitle()).get();
+        //obtains the current average rating
+        double currentAverage = userRate.getAverageRating();
+        //obtains the current rate counts (i.e. number of rates given)
+        long currentCount = userRate.getRateCount();
 
         userRate.setStarRating(rateDto.getStarRating());
         userRate.setRateCount(userRate.getRateCount() + 1);
-        userRate.setAverageRating((userRate.getAverageRating() + (long)userRate.getStarRating()) / userRate.getRateCount());
+        //To calculate the new average: Product of former average and former count summed with new rating and all
+        //...divided with new count (i.e. former count + 1
+        userRate.setAverageRating(((currentAverage * currentCount) + rateDto.getStarRating())
+                / (currentCount + 1));
         //Save update into the database
         rateBookRepository.save(userRate);
 
@@ -77,7 +84,7 @@ public class RateBookServiceImpl implements IRateBookService {
 
     //2) Method to retrieve reviews on specific book title
     @Override
-    public ResponsePojo<RateBook> titleRates(String title) {
+    public ResponseEntity<?> titleRates(String title) {
 
         //To check if book with the specified title exists in the book database
         if(!bookEntityRepository.existsByTitle(title)){
@@ -87,22 +94,22 @@ public class RateBookServiceImpl implements IRateBookService {
         //To retrieve all reviews for a book by title
         RateBook rateBook = rateBookRepository.findByTitle(title).get();
 
-        ResponsePojo<RateBook> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage(String.format("Reviews for %s: ", title));
-        responsePojo.setData(rateBook);
-        return responsePojo;
+        if(ObjectUtils.isEmpty(rateBook))
+            return new ResponseEntity<>(String.format("There are no reviews for book with this title %s: yet", title),
+                    HttpStatus.NO_CONTENT);
+
+        return new ResponseEntity<>(rateBook, HttpStatus.FOUND);
     }
 
     //3) Method to retrieve all reviews in the database
     @Override
-    public ResponsePojo<List<RateBook>> allRates() {
+    public ResponseEntity<?> allRates() {
         //To retrieve all reviews in the review database
         List<RateBook> rateBookList = rateBookRepository.findAll();
-        ResponsePojo<List<RateBook>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage("All reviews: ");
-        responsePojo.setData(rateBookList);
-        return responsePojo;
+
+        if(rateBookList.isEmpty())
+            return new ResponseEntity<>("There are no reviews yet", HttpStatus.NO_CONTENT);
+
+        return new ResponseEntity<>(rateBookList, HttpStatus.OK);
     }
 }

@@ -22,7 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
@@ -124,32 +127,31 @@ public class TransactionServiceImpl implements ITransactionService {
 
     //2) Method to find transaction details by username
     @Override
-    public ResponsePojo<List<Transaction>> transactionByUsername(String username) {
+    public ResponseEntity<?> transactionByUsername(String username) {
 
         List<Transaction> transactionList = transactionRepository.findByUsername(username).get();
 
-        ResponsePojo<List<Transaction>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage(String.format(ResponseUtils.FOUND_MESSAGE, username));
-        responsePojo.setData(transactionList);
-        return responsePojo;
+        if(transactionList.isEmpty())
+            return new ResponseEntity<>("There are no transactions yet", HttpStatus.NO_CONTENT);
+
+        return new ResponseEntity<>(transactionList, HttpStatus.OK);
     }
 
     //3) Method to find transaction details by invoice code
     @Override
-    public ResponsePojo<Transaction> transactionByInvoiceCode(String transactionCode) {
+    public ResponseEntity<?> transactionByInvoiceCode(String transactionCode) {
         Transaction transaction = transactionRepository.findByInvoiceCode(transactionCode).get();
 
-        ResponsePojo<Transaction> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage(String.format(ResponseUtils.FOUND_MESSAGE, transactionCode));
-        responsePojo.setData(transaction);
-        return responsePojo;
+        if(ObjectUtils.isEmpty(transaction))
+            return new ResponseEntity<>(String.format("There is no transaction for this invoice: %s", transactionCode),
+                    HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(transaction, HttpStatus.NOT_FOUND);
     }
 
     //4) Method to search for transaction details with different parameters
     @Override
-    public ResponsePojo<Page<Transaction>> searchTransaction(String username, String invoiceCode, Pageable pageable) {
+    public ResponseEntity<?> searchTransaction(String username, String invoiceCode, Pageable pageable) {
 
         QTransaction qTransaction = QTransaction.transaction;
         BooleanBuilder predicate = new BooleanBuilder();
@@ -169,12 +171,9 @@ public class TransactionServiceImpl implements ITransactionService {
 
         Page<Transaction> transactionPage = new PageImpl<>(jpaQuery.fetch(), pageable, jpaQuery.fetchCount());
 
-        //Response POJO
-        ResponsePojo<Page<Transaction>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage("Transaction details: ");
-        responsePojo.setData(transactionPage);
+        if(transactionPage.isEmpty())
+            return new ResponseEntity<>("Your search does not match any item", HttpStatus.NOT_FOUND);
 
-        return responsePojo;
+        return new ResponseEntity<>(transactionPage, HttpStatus.FOUND);
     }
 }

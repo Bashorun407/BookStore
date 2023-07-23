@@ -1,6 +1,7 @@
 package com.akinnova.bookstoredemo.service.bookentityservice;
 
 import com.akinnova.bookstoredemo.Exception.ApiException;
+import com.akinnova.bookstoredemo.dto.bookentitydto.BookUpdateDto;
 import com.akinnova.bookstoredemo.entity.QBookEntity;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.dto.bookentitydto.BookEntityDto;
@@ -15,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -39,15 +42,18 @@ public class BookEntityServiceImpl implements IBookEntityService {
     public ResponsePojo<BookEntity> createBook(BookEntityDto bookStoreDto){
 
         //Checks if Book with the same title and volume already exists in the database
-        if(bookStoreRepository.existsByTitle(bookStoreDto.getTitle()))
-            throw new ApiException(String.format("Book with title: %s and volume: %d already exist", bookStoreDto.getTitle(), bookStoreDto.getVolume()));
+//        if(bookStoreRepository.existsByTitle(bookStoreDto.getTitle()))
+//            throw new ApiException(String.format("Book with title: %s already exist",
+//                    bookStoreDto.getTitle()));
 
         BookEntity bookStore = BookEntity.builder()
+                .imageAddress(bookStoreDto.getImageAddress())
                 .title(bookStoreDto.getTitle())
                 .author(bookStoreDto.getAuthor())
                 .genre(bookStoreDto.getGenre())
                 .summary(bookStoreDto.getSummary())
                 .serialNumber(ResponseUtils.generateBookSerialNumber(10, bookStoreDto.getTitle()))
+                .edition(bookStoreDto.getEdition())
                 .volume(bookStoreDto.getVolume())
                 .quantity(bookStoreDto.getQuantity())
                 .price(bookStoreDto.getPrice())
@@ -66,95 +72,101 @@ public class BookEntityServiceImpl implements IBookEntityService {
     }
 
     //2) Method to find all books
-    public ResponsePojo<List<BookEntity>> findAllBooks(){
+    public ResponseEntity<?> findAllBooks(){
         //Only books that have not been deleted will be collected
         List<BookEntity> allBooks = bookStoreRepository.findAll()
                 .stream().filter((x)-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
 
-        ResponsePojo<List<BookEntity>> responsePojo = new ResponsePojo<>();
-        responsePojo.setData(allBooks);
-        responsePojo.setSuccess(true);
-        responsePojo.setMessage("Books fetch complete");
+        //If book entity list is empty...
+        if(allBooks.isEmpty()) {
+            return new ResponseEntity<>("Books not found", HttpStatus.NOT_FOUND);
+        }
 
-        return responsePojo;
+        return new ResponseEntity<>(allBooks, HttpStatus.FOUND);
     }
 
     //3) Methods to find books based on different parameters
     //defining some methods to query the repository
-    public ResponsePojo<List<BookEntity>> findBookByAuthor(String author){
+    public ResponseEntity<?> findBookByAuthor(String author){
 
-        Optional<List<BookEntity>> bookList = bookStoreRepository.findBookByAuthor(author);
-        bookList.orElseThrow(()->new ApiException(String.format("Books with author %s not found", author)));
-
-        //Collecting only books that have not been deleted by filtering Optional List
-        List<BookEntity> booksToReturn = bookList.get().stream()
+        List<BookEntity> bookEntityList = bookStoreRepository.findBookByAuthor(author).get().stream()
                 .filter(x-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
 
-        ResponsePojo<List<BookEntity>> responsePojo = new ResponsePojo<>();
-        responsePojo.setData(booksToReturn);
-        responsePojo.setMessage(String.format("Book(s) by Author: %s found.", author));
+        //If book entity list is empty...
+        if(bookEntityList.isEmpty()){
+            return new ResponseEntity<>(String.format("Books by author: %s not found", author), HttpStatus.NOT_FOUND);
+        }
 
-        return responsePojo;
+        return new ResponseEntity<>(bookEntityList, HttpStatus.FOUND);
     }
 
     //4) Method to find book by title
-    public ResponsePojo<BookEntity> findBookByTitle(String title){
-        Optional<BookEntity> bookEntityOptional = bookStoreRepository.findBookByTitle(title);
-        bookEntityOptional.orElseThrow(()-> new ApiException(String.format("Book titled %s not found.", title)));
+    public ResponseEntity<?> findBookByTitle(String title){
+        List<BookEntity> bookEntityList = bookStoreRepository.findBookByTitle(title).stream()
+                .filter(x-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
 
-        //Collecting only books that have not been deleted by filtering Optional List
-//        List<BookEntity> booksToReturn = bookList.get().stream()
-//                .filter(x-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
+        //If book entity list is empty...
+        if(bookEntityList.isEmpty()){
+            return new ResponseEntity<>(String.format("Books by title: %s not found", title), HttpStatus.NOT_FOUND);
+        }
 
-        ResponsePojo<BookEntity> responsePojo = new ResponsePojo<>();
-        responsePojo.setData(bookEntityOptional.get());
-        responsePojo.setMessage("Books by title found");
-
-        return responsePojo;
+        return new ResponseEntity<>(bookEntityList, HttpStatus.FOUND);
     }
 
     //5) Method to find book by genre
-    public ResponsePojo<List<BookEntity>> findBooksByGenre(String genre){
-        Optional<List<BookEntity>> books = bookStoreRepository.findBooksByGenre(genre);
-        books.orElseThrow(()-> new ApiException(String.format("Book by %s not found", genre)));
+    public ResponseEntity<?> findBooksByGenre(String genre){
+        //Return only books that have not been deleted
+        List<BookEntity> books = bookStoreRepository.findBooksByGenre(genre).get()
+                .stream().filter(x-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
+        //If books is null
+        if (books.isEmpty()){
+            return new ResponseEntity<>(String.format("Books by title: %s not found", genre), HttpStatus.NOT_FOUND);
+        }
 
-        ResponsePojo<List<BookEntity>> responsePojo = new ResponsePojo<>();
-        responsePojo.setData(books.get());
-        responsePojo.setMessage("books by genre found.");
-
-        return responsePojo;
+        return new ResponseEntity<>(books, HttpStatus.FOUND);
     }
 
     //6) Method to find book by serial number
-    public ResponsePojo<BookEntity> findBookBySerialNumber(String serialNumber){
-        Optional<BookEntity> book = bookStoreRepository.findBookBySerialNumber(serialNumber);
-        book.orElseThrow(()-> new ApiException(String.format("Book by %s not found", serialNumber)));
+    public ResponseEntity<?> findBookBySerialNumber(String serialNumber){
+        //Retrieve only books that are active
+        Optional<BookEntity> book = bookStoreRepository.findBookBySerialNumber(serialNumber)
+                .filter(x-> x.getDeleteStatus().equals(false));
 
-        ResponsePojo<BookEntity> responsePojo = new ResponsePojo<>();
-        responsePojo.setData(book.get());
-        responsePojo.setMessage("Book by serial number found.");
+        //If books is null
+        if (book.isEmpty()){
+         return new ResponseEntity<>(String.format("Book by serial number: %s not found", serialNumber),
+                 HttpStatus.NOT_FOUND);
+        }
 
-        return responsePojo;
+       return new ResponseEntity<>(book, HttpStatus.FOUND);
     }
 
     //7) Method to update book content
-    public ResponsePojo<BookEntity> updateBookContent(BookEntityDto bookStoreDto){
+    public ResponsePojo<BookEntity> updateBookContent(BookUpdateDto bookUpdateDto){
+
 
         //To find book in the repository i.e. books that have not been deleted
-        Optional<BookEntity> findBook = bookStoreRepository.findById(bookStoreDto.getId()).filter(x-> x.getDeleteStatus().equals(false));
+        Optional<BookEntity> findBook = bookStoreRepository.findBookBySerialNumber(bookUpdateDto.getSerialNumber())
+                .filter(x-> x.getDeleteStatus().equals(false));
 
         //throw exception if book is not found
-        findBook.orElseThrow(()-> new ApiException(String.format("Book with Id: %d not found", bookStoreDto.getId())));
+        if(findBook.isEmpty()){
+            ResponsePojo<BookEntity> responsePojo = new ResponsePojo<>();
+            responsePojo.setSuccess(false);
+            responsePojo.setStatusCode(ResponseUtils.NOT_FOUND);
+            responsePojo.setMessage(String.format(ResponseUtils.NOT_FOUND_MESSAGE, bookUpdateDto.getSerialNumber()));
+
+            return responsePojo;
+        }
 
         //A temporary container which represents fetched book
         BookEntity bookToUpdate = findBook.get();
-
-        bookToUpdate.setTitle(bookStoreDto.getTitle());
-        bookToUpdate.setAuthor(bookStoreDto.getAuthor());
-        bookToUpdate.setSummary(bookStoreDto.getSummary());
-        bookToUpdate.setVolume(bookStoreDto.getVolume());
-        bookToUpdate.setQuantity(bookStoreDto.getQuantity());
-        bookToUpdate.setPrice(bookStoreDto.getPrice());
+        bookToUpdate.setImageAddress(bookUpdateDto.getImageAddress());
+        bookToUpdate.setSummary(bookUpdateDto.getSummary());
+        bookToUpdate.setEdition(bookUpdateDto.getEdition());
+        bookToUpdate.setQuantity(bookUpdateDto.getQuantity());
+        bookToUpdate.setPrice(bookUpdateDto.getPrice());
+        bookToUpdate.setDeleteStatus(false);
 
         //Saving the updated book in the repository
         bookStoreRepository.save(bookToUpdate);
@@ -167,15 +179,15 @@ public class BookEntityServiceImpl implements IBookEntityService {
     }
 
     //8) Method to delete book
-    public ResponsePojo<String> deleteBook(Long id){
-
-        Optional<BookEntity> book = bookStoreRepository.findById(id);
-        //To check if book has been deleted
-        if (book.get().getDeleteStatus().equals(true))
-            throw new ApiException("This Book has already been deleted");
+    public ResponseEntity<?> deleteBook(String serialNumber){
+        //Optional search for book with specified serial number
+        Optional<BookEntity> book = bookStoreRepository.findBookBySerialNumber(serialNumber)
+                .filter(x-> x.getDeleteStatus().equals(false));
 
         //if book is not found, throw an exception
-        book.orElseThrow(()-> new ApiException(String.format("Book by %d not found")));
+        if(book.isEmpty()){
+            return new ResponseEntity<>("Book by " + serialNumber + " is not found.", HttpStatus.NOT_FOUND);
+        }
 
         //Only book delete status will be changed
         book.get().setDeleteStatus(true);
@@ -183,16 +195,13 @@ public class BookEntityServiceImpl implements IBookEntityService {
         //Save changes to book status
         bookStoreRepository.save(book.get());
 
-        ResponsePojo<String> responsePojo = new ResponsePojo<>();
-        responsePojo.setMessage(String.format("Book by %d has been deleted", id));
-
-        return responsePojo;
+        return new ResponseEntity<>("Book by " + serialNumber + " has been deleted", HttpStatus.ACCEPTED);
 
     }
 
     //9) Method to search book by multiple parameters
     @Override
-    public ResponsePojo<Page<BookEntity>> searchBook(String title, String author, String genre,
+    public ResponseEntity<?> searchBook(String title, String author, String genre,
                                                      String serialNumber, Pageable pageable) {
 
         QBookEntity qBookEntity = QBookEntity.bookEntity;
@@ -219,10 +228,11 @@ public class BookEntityServiceImpl implements IBookEntityService {
 
         Page<BookEntity> bookEntityPage = new PageImpl<>(jpaQuery.fetch(), pageable, jpaQuery.fetchCount());
 
-        ResponsePojo<Page<BookEntity>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage("Book Items: ");
-        responsePojo.setData(bookEntityPage);
-        return responsePojo;
+        //If book-search does not return any value..notify the searcher
+        if(bookEntityPage.isEmpty()){
+          return new ResponseEntity<>("Your search does not match any item", HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(bookEntityPage, HttpStatus.FOUND);
     }
 }

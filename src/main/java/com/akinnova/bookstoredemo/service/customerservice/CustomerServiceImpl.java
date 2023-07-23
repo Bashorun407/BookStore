@@ -3,7 +3,7 @@ package com.akinnova.bookstoredemo.service.customerservice;
 import com.akinnova.bookstoredemo.Exception.ApiException;
 import com.akinnova.bookstoredemo.dto.customerdto.CustomerDto;
 import com.akinnova.bookstoredemo.dto.logindto.LoginDto;
-import com.akinnova.bookstoredemo.dto.customerdto.UpdateCustomerDto;
+import com.akinnova.bookstoredemo.dto.customerdto.CustomerUpdateDto;
 import com.akinnova.bookstoredemo.email.emailDto.EmailDetail;
 import com.akinnova.bookstoredemo.email.emailService.EmailService;
 import com.akinnova.bookstoredemo.entity.Customer;
@@ -29,6 +29,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
@@ -65,9 +66,11 @@ public class CustomerServiceImpl implements ICustomerService {
         }
 
         Customer customer = Customer.builder()
+                .imageAddress(customerDto.getImageAddress())
                 .firstName(customerDto.getFirstName())
                 .lastName(customerDto.getLastName())
                 .dateOfBirth(customerDto.getDateOfBirth())
+                .phoneNumber(customerDto.getPhoneNumber())
                 .username(customerDto.getUsername())
                 .email(customerDto.getEmail())
                 .password(passwordEncoder.encode(customerDto.getPassword()))
@@ -115,44 +118,42 @@ public class CustomerServiceImpl implements ICustomerService {
 
     //3) Method to find customer by username
     @Override
-    public ResponsePojo<Customer> findCustomerByUsername(String username) {
-        Optional<Customer> customerOptional = customerRepository.findByUsername(username);
-        customerOptional.orElseThrow(()-> new ApiException("Customer with specified username does not exist"));
+    public ResponseEntity<?> findCustomerByUsername(String username) {
+        Customer customer = customerRepository.findByUsername(username).get();
 
-        ResponsePojo<Customer> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage(String.format(ResponseUtils.FOUND_MESSAGE, username));
-        responsePojo.setData(customerOptional.get());
-        return responsePojo;
+        if(ObjectUtils.isEmpty(customer))
+            return new ResponseEntity<>(String.format("Customer with username: %s does not exist", username),
+                    HttpStatus.NOT_FOUND);
+
+     return new ResponseEntity<>(customer, HttpStatus.FOUND);
     }
 
     //4) Method to find customer by email
     @Override
-    public ResponsePojo<Customer> findCustomerByEmail(String email) {
-        Optional<Customer> customerOptional = customerRepository.findByEmail(email);
-        customerOptional.orElseThrow(()-> new ApiException("Customer with specified email does not exist"));
+    public ResponseEntity<?> findCustomerByEmail(String email) {
+        Customer customer = customerRepository.findByEmail(email).get();
 
-        ResponsePojo<Customer> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage(String.format(ResponseUtils.FOUND_MESSAGE, email));
-        responsePojo.setData(customerOptional.get());
-        return responsePojo;
+        if(ObjectUtils.isEmpty(customer))
+            return new ResponseEntity<>(String.format("Customer with email: %s does not exist", email),
+                    HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(customer, HttpStatus.FOUND);
     }
 
     //5) Method to find all customers
     @Override
-    public ResponsePojo<List<Customer>> findAllCustomers() {
+    public ResponseEntity<?> findAllCustomers() {
         List<Customer> customerList = customerRepository.findAll();
 
-        ResponsePojo<List<Customer>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage("Customer list:");
-        responsePojo.setData(customerList);
-        return responsePojo;
+        if(customerList.isEmpty())
+            return new ResponseEntity<>("Customer with email: %s does not exist",
+                    HttpStatus.NOT_FOUND);
+
+    return new ResponseEntity<>(customerList, HttpStatus.FOUND);
     }
 
     //6) Method to Update Customer password....email
-    public ResponsePojo<Customer> updateCustomerPassword(UpdateCustomerDto updateCustomerDto) {
+    public ResponsePojo<Customer> updateCustomer(CustomerUpdateDto updateCustomerDto) {
         //Verify user detail
         Optional<Customer> customerOptional = customerRepository.findByEmail(updateCustomerDto.getEmail());
         //If customer is not available, throw an exception
@@ -162,6 +163,8 @@ public class CustomerServiceImpl implements ICustomerService {
        Customer customerToUpdate = customerOptional.get();
 
        //Updating fetched customer
+         customerToUpdate.setImageAddress(updateCustomerDto.getImageAddress());
+         customerToUpdate.setPhoneNumber(updateCustomerDto.getPhoneNumber());
          customerToUpdate.setUsername(updateCustomerDto.getUsername());
          customerToUpdate.setEmail(updateCustomerDto.getEmail());
          customerToUpdate.setPassword(passwordEncoder.encode(updateCustomerDto.getNewPassword()));
@@ -189,7 +192,7 @@ public class CustomerServiceImpl implements ICustomerService {
 
     //7) Method to search customer's details using multiple parameters
     @Override
-    public ResponsePojo<Page<Customer>> searchCustomer(String firstName, String lastName, String username,
+    public ResponseEntity<?> searchCustomer(String firstName, String lastName, String username,
                                                        String email, Pageable pageable) {
 
         QCustomer qCustomer = QCustomer.customer;
@@ -217,13 +220,12 @@ public class CustomerServiceImpl implements ICustomerService {
         //Pageable customer response
         Page<Customer> customerPage = new PageImpl<>(jpaQuery.fetch(), pageable, jpaQuery.fetchCount());
 
-        //Response POJO
-        ResponsePojo<Page<Customer>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage("Customers: ");
-        responsePojo.setData(customerPage);
+        //if customerPage is empty
+        if(customerPage.isEmpty())
+            return new ResponseEntity<>("Nothing found!", HttpStatus.NOT_FOUND);
 
-        return responsePojo;
+        //Response POJO
+        return new ResponseEntity<>(customerPage, HttpStatus.FOUND);
     }
 
 }

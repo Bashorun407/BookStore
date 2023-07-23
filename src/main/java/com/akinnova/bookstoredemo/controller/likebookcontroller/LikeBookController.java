@@ -27,13 +27,13 @@ public class LikeBookController {
 
     //2) Method to retrieve likes on specific book title
     @GetMapping("/titleLikes/{title}")
-    public ResponsePojo<LikeBook> titleLikes(@PathVariable(name = "title") String title) {
+    public ResponseEntity<?> titleLikes(@PathVariable(name = "title") String title) {
         return likeBookService.titleLikes(title);
     }
 
     //3) Method to retrieve all book-likes in the database
     @GetMapping("/allLikes")
-    public ResponsePojo<List<LikeBook>> allReviews() {
+    public ResponseEntity<?> allReviews() {
         return likeBookService.allLikes();
     }
 }

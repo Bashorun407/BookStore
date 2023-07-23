@@ -21,7 +21,7 @@ public class LikeBook implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
-    private Boolean likes = true;
+    private Boolean likes;
     private Long totalLikes;
     private LocalDateTime dateTimeOfLike;
 

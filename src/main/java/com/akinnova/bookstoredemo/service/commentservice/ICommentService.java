@@ -10,11 +10,11 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface ICommentService {
-    ResponseEntity<?> commentAboutBook(CommentDto commentDto);
-    ResponsePojo<List<Comment>> commentByUsername(String username);
-    ResponsePojo<List<Comment>> commentByTitle(String title);
-    ResponsePojo<List<Comment>> allComments();
+    ResponsePojo<Comment> commentAboutBook(CommentDto commentDto);
+    ResponseEntity<?> commentByUsername(String username);
+    ResponseEntity<?> commentByTitle(String title);
+    ResponseEntity<?> allComments();
     ResponseEntity<?> deleteComment(CommentDto commentDto);
-    ResponsePojo<Page<Comment>> searchComment(String title, String username, Pageable pageable);
+    ResponseEntity<?> searchComment(String title, String username, Pageable pageable);
 
 }

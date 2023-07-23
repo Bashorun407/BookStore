@@ -7,6 +7,7 @@ import com.akinnova.bookstoredemo.service.transactionservice.TransactionServiceI
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,19 +27,19 @@ public class TransactionController {
 
     //2) Method to find transaction details by username
     @GetMapping("/transactionUser/{username}")
-    public ResponsePojo<List<Transaction>> transactionByUsername(@PathVariable(name = "username") String username) {
+    public ResponseEntity<?> transactionByUsername(@PathVariable(name = "username") String username) {
         return transactionService.transactionByUsername(username);
     }
 
     //3) Method to find transaction details by invoice code
     @GetMapping("/transactionCode/{invoiceCode}")
-    public ResponsePojo<Transaction> transactionByInvoiceCode(@PathVariable(name = "invoiceCode") String transactionCode) {
+    public ResponseEntity<?> transactionByInvoiceCode(@PathVariable(name = "invoiceCode") String transactionCode) {
         return transactionService.transactionByInvoiceCode(transactionCode);
     }
 
     //4) Method to search for transaction details with different parameters
     @GetMapping("/search")
-    public ResponsePojo<Page<Transaction>> searchTransaction(@RequestParam(name = "username", required = false) String username,
+    public ResponseEntity<?> searchTransaction(@RequestParam(name = "username", required = false) String username,
                                                              @RequestParam(name = "invoiceCode") String invoiceCode,
                                                              Pageable pageable) {
         return transactionService.searchTransaction(username, invoiceCode, pageable);

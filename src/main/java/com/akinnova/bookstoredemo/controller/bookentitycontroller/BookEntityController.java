@@ -1,13 +1,14 @@
 package com.akinnova.bookstoredemo.controller.bookentitycontroller;
 
+import com.akinnova.bookstoredemo.dto.bookentitydto.BookUpdateDto;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.dto.bookentitydto.BookEntityDto;
 import com.akinnova.bookstoredemo.entity.BookEntity;
 import com.akinnova.bookstoredemo.service.bookentityservice.BookEntityServiceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,43 +26,43 @@ public class BookEntityController {
     }
 
     @GetMapping("/auth/allBooks")
-    public ResponsePojo<List<BookEntity>> findAllBooks(){
+    public ResponseEntity<?> findAllBooks(){
         return bookStoreService.findAllBooks();
     }
 
     @GetMapping("/auth/author/{author}")
-    public ResponsePojo<List<BookEntity>> findBookByAuthor(@PathVariable String author){
+    public ResponseEntity<?> findBookByAuthor(@PathVariable String author){
         return bookStoreService.findBookByAuthor(author);
     }
 
     @GetMapping("/auth/title/{title}")
-    public ResponsePojo<BookEntity> findBookByTitle(@PathVariable String title){
+    public ResponseEntity<?> findBookByTitle(@PathVariable String title){
         return bookStoreService.findBookByTitle(title);
     }
 
     @GetMapping("/auth/genre/{genre}")
-    public ResponsePojo<List<BookEntity>> findBooksByGenre(@PathVariable String genre){
+    public ResponseEntity<?> findBooksByGenre(@PathVariable String genre){
         return bookStoreService.findBooksByGenre(genre);
     }
 
     @GetMapping("/auth/serialNumber/{serialNumber}")
-    public ResponsePojo<BookEntity> findBookBySerialNumber(@PathVariable String serialNumber){
+    public ResponseEntity<?> findBookBySerialNumber(@PathVariable String serialNumber){
         return bookStoreService.findBookBySerialNumber(serialNumber);
     }
 
-    @PutMapping("/book")
-    public ResponsePojo<BookEntity> updateBookContent(@RequestBody BookEntityDto bookStoreDto){
-        return bookStoreService.updateBookContent(bookStoreDto);
+    @PutMapping("/auth/book")
+    public ResponsePojo<BookEntity> updateBookContent(@RequestBody BookUpdateDto bookUpdateDto){
+        return bookStoreService.updateBookContent(bookUpdateDto);
     }
 
-    @DeleteMapping("/book/{id}")
-    public ResponsePojo<String> deleteBook(@PathVariable Long id){
-        return bookStoreService.deleteBook(id);
+    @DeleteMapping("/auth/book/{serialNumber}")
+    public ResponseEntity<?> deleteBook(@PathVariable String serialNumber){
+        return bookStoreService.deleteBook(serialNumber);
     }
 
     //9) Method to search book by multiple parameters
     @GetMapping("auth/search")
-    public ResponsePojo<Page<BookEntity>> searchBook(@RequestParam(name = "title", required = false) String title,
+    public ResponseEntity<?> searchBook(@RequestParam(name = "title", required = false) String title,
                                                      @RequestParam(name = "author", required = false) String author,
                                                      @RequestParam(name = "genre", required = false) String genre,
                                                      @RequestParam(name = "serialNumber", required = false) String serialNumber,

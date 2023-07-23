@@ -2,18 +2,13 @@ package com.akinnova.bookstoredemo.dto.bookentitydto;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
 @Data
-public class BookEntityDto {
+public class BookUpdateDto {
     private String imageAddress;
-    private String title;
-    private String author;
-    private String genre;
+    private String serialNumber;
     private String summary;
     private String edition;
-    private Integer volume;
     private Long quantity;
     private Double price;
+    private Boolean deleteStatus;
 }

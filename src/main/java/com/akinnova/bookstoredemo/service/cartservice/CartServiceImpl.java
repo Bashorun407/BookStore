@@ -5,9 +5,11 @@ import com.akinnova.bookstoredemo.Exception.ApiException;
 import com.akinnova.bookstoredemo.dto.cartdto.CartDto;
 import com.akinnova.bookstoredemo.entity.BookEntity;
 import com.akinnova.bookstoredemo.entity.Cart;
+import com.akinnova.bookstoredemo.entity.Customer;
 import com.akinnova.bookstoredemo.entity.QCart;
 import com.akinnova.bookstoredemo.repository.BookEntityRepository;
 import com.akinnova.bookstoredemo.repository.CartRepository;
+import com.akinnova.bookstoredemo.repository.CustomerRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.response.ResponseUtils;
 
@@ -27,17 +29,21 @@ import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CartServiceImpl implements ICartService {
 
     @Autowired
     private EntityManager entityManager;
+    private final CustomerRepository customerRepository;
     private final CartRepository cartRepository;
     private final BookEntityRepository bookEntityRepository;
 
     //Class Constructor
-    public CartServiceImpl(CartRepository cartRepository, BookEntityRepository bookEntityRepository) {
+    public CartServiceImpl(CustomerRepository customerRepository, CartRepository cartRepository,
+                           BookEntityRepository bookEntityRepository) {
+        this.customerRepository = customerRepository;
         this.cartRepository = cartRepository;
         this.bookEntityRepository = bookEntityRepository;
     }
@@ -45,21 +51,29 @@ public class CartServiceImpl implements ICartService {
     //1) Method to add item to cart
     public ResponsePojo<Cart> createCartItem(CartDto cartDto) {
         //Cart List to collect all books
-
+        //Fetching book entity
         Optional<BookEntity> bookOptional =  bookEntityRepository.findBookByTitle(cartDto.getTitle());
         bookOptional.orElseThrow(()->
                 new ApiException(String.format("Book with the title: %s does not exist.", cartDto.getTitle())));
 
         BookEntity bookEntity = bookOptional.get();
+
+        //Fetching customer detail
+        Optional<Customer> customerOptional = customerRepository.findByUsername(cartDto.getUsername());
+        customerOptional.orElseThrow(()->
+                new ApiException(String.format("Customer with username: %s does not exist.", cartDto.getUsername())));
+
+        Customer customer = customerOptional.get();
         //if it exists, extract needed details into cartDto object
         Cart cart = Cart.builder()
-                .username(cartDto.getUsername())
+                .imageAddress(bookEntity.getImageAddress())
+                .username(customer.getUsername())
                 .title(cartDto.getTitle())
                 .serialNumber(bookEntity.getSerialNumber())
                 .cartItemNumber(ResponseUtils.generateUniqueIdentifier(5, cartDto.getUsername()))
-                .quantity(cartDto.getQuantity())
+                .quantity(1)
                 .price(bookEntity.getPrice())
-                .amountToPay(cartDto.getPrice() * cartDto.getQuantity())
+                //.amountToPay(cartDto.getPrice() * cartDto.getQuantity())
                 .checkOut(false)
                 .timeCheckedIn(LocalDateTime.now())
                 .build();
@@ -77,23 +91,30 @@ public class CartServiceImpl implements ICartService {
 
 
     //2) Method to retrieve all items in cart by username (i.e. for a username)
-    public ResponsePojo<List<Cart>> getCartItemByUsername(String username) {
+    public ResponseEntity<?> getCartItemByUsername(String username) {
         //To retrieve all items in the cart for a username
-        Optional<List<Cart>> cartListOptional = cartRepository.findByUsername(username);
-        cartListOptional.orElseThrow(()-> new ApiException(String.format("No item was saved by %s in the database.", username)));
+        List<Cart> cartList = cartRepository.findByUsername(username).get().stream()
+                .filter(x-> x.getCheckOut().equals(false)).collect(Collectors.toList());
 
-        List<Cart> cartList = cartListOptional.get();
-        ResponsePojo<List<Cart>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage("Items in Cart: ");
-        responsePojo.setData(cartList);
-        return responsePojo;
+        if(cartList.isEmpty()){
+            return new ResponseEntity<>(String.format("No item was saved by %s in the database.", username),
+                    HttpStatus.NOT_FOUND);
+        }
+
+      return new ResponseEntity<>(cartList, HttpStatus.FOUND);
     }
 
 
 //3) Method to update Item in cart
 // TODO: 7/5/2023 Cart needs some improvement 
     public ResponsePojo<Cart> updateCartItem(CartDto cartDto) {
+        //Fetching book entity
+        Optional<BookEntity> bookOptional =  bookEntityRepository.findBookByTitle(cartDto.getTitle());
+        bookOptional.orElseThrow(()->
+                new ApiException(String.format("Book with the title: %s does not exist.", cartDto.getTitle())));
+
+        BookEntity bookEntity = bookOptional.get();
+
         //To retrieve the item to update from the database
         Optional<Cart> itemOptional = cartRepository.findByTitle(cartDto.getTitle());
         itemOptional.orElseThrow(()-> new ApiException(String.format("Book with this title does not exist in the cart.")));
@@ -102,10 +123,10 @@ public class CartServiceImpl implements ICartService {
 
         //Updating the contents of the itemToUpdate
         itemToUpdate.setTitle(cartDto.getTitle());
-        itemToUpdate.setSerialNumber(cartDto.getSerialNumber());
-        itemToUpdate.setPrice(cartDto.getPrice());
-        itemToUpdate.setQuantity(cartDto.getQuantity());
-        itemToUpdate.setAmountToPay(cartDto.getAmountToPay());
+        itemToUpdate.setSerialNumber(bookEntity.getSerialNumber());
+        itemToUpdate.setPrice(bookEntity.getPrice());
+        itemToUpdate.setQuantity(1);
+        itemToUpdate.setAmountToPay(bookEntity.getPrice());
 
         //Saving updated contents to cart database
         Cart savedCart = cartRepository.save(itemToUpdate);
@@ -131,7 +152,7 @@ public class CartServiceImpl implements ICartService {
 
     //5) Method to search cart using multiple parameters
     @Override
-    public ResponsePojo<Page<Cart>> searchCart(String username, String title, String serialNumber,
+    public ResponseEntity<?> searchCart(String username, String title, String serialNumber,
                                                String cartItemNumber, Pageable pageable) {
         QCart qCart = QCart.cart;
         BooleanBuilder predicate = new BooleanBuilder();
@@ -157,13 +178,12 @@ public class CartServiceImpl implements ICartService {
 
         Page<Cart> cartPage = new PageImpl<>(jpaQuery.fetch(), pageable, jpaQuery.fetchCount());
 
-        //ResponsePoJo
-        ResponsePojo<Page<Cart>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage("Cart items: ");
-        responsePojo.setData(cartPage);
+        if(cartPage.isEmpty())
+            return new ResponseEntity<>("Your search does not match any item.", HttpStatus.NOT_FOUND);
 
-        return responsePojo;
+        //ResponsePoJo
+
+        return new ResponseEntity<>(cartPage, HttpStatus.FOUND);
     }
 
 }

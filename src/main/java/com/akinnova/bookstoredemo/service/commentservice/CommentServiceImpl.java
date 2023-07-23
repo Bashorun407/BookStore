@@ -44,18 +44,8 @@ public class CommentServiceImpl implements ICommentService {
 
     //1) Method to comment
     @Override
-    public ResponseEntity<?> commentAboutBook(CommentDto commentDto) {
-        //To check that customer is registered and is in the customer database
-        if(!customerRepository.existsByUsername(commentDto.getUsername())){
-            throw new ApiException(String.format("User with this username: %s is not allowed. Ensure to register first.",
-                    commentDto.getUsername()));
-        }
+    public ResponsePojo<Comment> commentAboutBook(CommentDto commentDto) {
 
-        //To check that book that will be comment on still exists
-        if(!bookEntityRepository.existsByTitle(commentDto.getTitle())){
-            throw new ApiException(String.format("Book with this title: %s does not exist.",
-                    commentDto.getTitle()));
-        }
         Comment comment = Comment.builder()
                 .title(commentDto.getTitle())
                 .comment(commentDto.getComment())
@@ -63,49 +53,51 @@ public class CommentServiceImpl implements ICommentService {
                 .commentTime(LocalDateTime.now())
                 .build();
 
+        ResponsePojo<Comment> responsePojo = new ResponsePojo<>();
+        responsePojo.setMessage("Comment sent");
+        responsePojo.setData(comment);
+
         //Saving new comment into the database
         commentRepository.save(comment);
-        return new ResponseEntity<>("Comment sent", HttpStatus.ACCEPTED);
+        return responsePojo;
 
     }
 
     //2) Method to view comments by a username
     @Override
-    public ResponsePojo<List<Comment>> commentByUsername(String username) {
+    public ResponseEntity<?> commentByUsername(String username) {
         //To retrieve comments by a user
         List<Comment> commentList = commentRepository.findByUsername(username).get();
 
-        ResponsePojo<List<Comment>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage(String.format("Comments by %s found.", username));
-        responsePojo.setData(commentList);
-        return responsePojo;
+        if(commentList.isEmpty())
+            return new ResponseEntity<>(String.format("Comments by %s found.", username), HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(commentList, HttpStatus.FOUND);
     }
 
     //2b) Method to view comments on a book title
     @Override
-    public ResponsePojo<List<Comment>> commentByTitle(String title) {
+    public ResponseEntity<?> commentByTitle(String title) {
         //To retrieve comments for a book through title
         List<Comment> commentList = commentRepository.findByTitle(title).get();
 
-        ResponsePojo<List<Comment>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage(String.format("Comments by %s found.", title));
-        responsePojo.setData(commentList);
-        return responsePojo;
+        if(commentList.isEmpty())
+            return new ResponseEntity<>(String.format("Comments by %s found.", title), HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(commentList, HttpStatus.FOUND);
+
     }
 
     //3) Method to view all comments
     @Override
-    public ResponsePojo<List<Comment>> allComments() {
+    public ResponseEntity<?> allComments() {
         //To retrieve all comments
         List<Comment> allComments = commentRepository.findAll();
 
-        ResponsePojo<List<Comment>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage("All comments found");
-        responsePojo.setData(allComments);
-        return responsePojo;
+        if(allComments.isEmpty())
+            return new ResponseEntity<>("No comments found", HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(allComments, HttpStatus.FOUND);
     }
 
     //4) Method to delete comments by username
@@ -127,14 +119,6 @@ public class CommentServiceImpl implements ICommentService {
         Optional<List<Comment>> commentList = commentRepository.findByTitle(commentDto.getTitle());
         commentList.orElseThrow(()->new ApiException(String.format("There are no comments on this book titled: %s.", commentDto.getTitle())));
 
-        //To get particular comment by user using title and username of user
-//        Long commentToDelete = commentList.get().stream()
-//                .filter(x -> x.getTitle() == commentDto.getTitle() && x.getUsername() == x.getUsername())
-//                .findFirst()
-//                .orElseThrow(()-> new ApiException("Book Not found"))
-//                .getId();
-//                commentRepository.deleteById(commentToDelete);
-
         List<Comment> comments = commentList.get();
         Comment comment = comments.stream().findFirst().get();
         commentRepository.delete(comment);
@@ -144,7 +128,7 @@ public class CommentServiceImpl implements ICommentService {
 
     //5) Method to search for comments using title or username
     @Override
-    public ResponsePojo<Page<Comment>> searchComment(String title, String username, Pageable pageable) {
+    public ResponseEntity<?> searchComment(String title, String username, Pageable pageable) {
 
         QComment qComment = QComment.comment1;
         BooleanBuilder predicate = new BooleanBuilder();
@@ -165,12 +149,9 @@ public class CommentServiceImpl implements ICommentService {
         //Implementing Pageable response
         Page<Comment> commentPage = new PageImpl<>(jpaQuery.fetch(), pageable, jpaQuery.fetchCount());
 
-        //ResponsePojo
-        ResponsePojo<Page<Comment>> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.FOUND);
-        responsePojo.setMessage("Comments: ");
-        responsePojo.setData(commentPage);
+        if(commentPage.isEmpty())
+            return new ResponseEntity<>("Your search does not match any item", HttpStatus.NOT_FOUND);
 
-        return responsePojo;
+        return new ResponseEntity<>(commentPage, HttpStatus.FOUND);
     }
 }
