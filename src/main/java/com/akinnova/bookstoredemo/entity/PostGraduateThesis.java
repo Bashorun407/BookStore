@@ -1,4 +1,4 @@
-package com.akinnova.bookstoredemo.entity.postgraduate;
+package com.akinnova.bookstoredemo.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

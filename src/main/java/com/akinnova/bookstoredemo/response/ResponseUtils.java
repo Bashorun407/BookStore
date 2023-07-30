@@ -120,7 +120,4 @@ public class ResponseUtils {
         return (rate >= 1 && rate <= 5) ? rate : 0;
     }
 
-
-
-
 }

@@ -6,13 +6,14 @@ import com.akinnova.bookstoredemo.dto.bookentitydto.BookEntityDto;
 import com.akinnova.bookstoredemo.entity.BookEntity;
 import com.akinnova.bookstoredemo.service.bookentityservice.BookEntityServiceImpl;
 
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@AllArgsConstructor
 @RestController
 @RequestMapping("/api/v1/bookstore")
 public class BookEntityController {

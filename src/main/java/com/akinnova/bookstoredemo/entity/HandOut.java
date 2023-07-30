@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -27,13 +28,19 @@ public class HandOut {
     private String schoolName;
     private String faculty;
     private String department;
-    private String level;
+    private int level;
     private String courseCode;
     private String courseTitle;
     private String summary;
     private String serialNumber;
+    private String createdBy;
+    private String creatorEmail;
     @CreationTimestamp
-    private LocalDateTime supplyDate;
-    private Boolean deleteStatus;
+    private LocalDateTime createdAt;
+    private String modifiedBy;
+    private String modifierEmail;
+    @UpdateTimestamp
+    private LocalDateTime modifiedAt;
+    private Boolean activeStatus;
 
 }
