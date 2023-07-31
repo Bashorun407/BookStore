@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
         @UniqueConstraint(columnNames = "courseTitle"),
         @UniqueConstraint(columnNames = "serialNumber")
 })
-public class HandOut {
+public class  HandOut {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
