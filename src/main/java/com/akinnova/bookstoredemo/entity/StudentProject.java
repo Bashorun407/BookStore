@@ -1,10 +1,11 @@
-package com.akinnova.bookstoredemo.entity.studententity;
+package com.akinnova.bookstoredemo.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -26,13 +27,16 @@ public class StudentProject {
     private String schoolName;
     private String faculty;
     private String department;
-    private String level;
     private String projectTitle;
-    private String author;
     private String summary;
     private Double price;
     private String serialNumber;
+    private String createdBy;
+    private String email;
     @CreationTimestamp
-    private LocalDateTime supplyDate;
-    private Boolean deleteStatus;
+    private LocalDateTime createdAt;
+    private String modifiedBy;
+    @UpdateTimestamp
+    private LocalDateTime modifiedAt;
+    private Boolean activeStatus;
 }
