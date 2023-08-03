@@ -35,7 +35,7 @@ public class RateBookController {
 
     //3) Method to retrieve all reviews in the database
     @GetMapping("/allRates")
-    public ResponseEntity<?> allRates() {
-        return rateBookService.allRates();
+    public ResponseEntity<?> allRates(@RequestParam(defaultValue = "1") int pageNum, @RequestParam(defaultValue = "10") int pageSize) {
+        return rateBookService.allRates(pageNum, pageSize);
     }
 }

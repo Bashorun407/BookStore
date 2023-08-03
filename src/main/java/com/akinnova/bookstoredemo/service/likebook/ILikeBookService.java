@@ -10,5 +10,5 @@ import java.util.List;
 public interface ILikeBookService {
     ResponseEntity<?> likeBook(LikeDto likeDto);
     ResponseEntity<?> titleLikes(String title);
-    ResponseEntity<?> allLikes();
+    ResponseEntity<?> allLikes(int pageNum, int pageSize);
 }

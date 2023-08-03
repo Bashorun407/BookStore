@@ -12,6 +12,7 @@ import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -25,6 +26,7 @@ import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl implements ICommentService {
@@ -65,39 +67,58 @@ public class CommentServiceImpl implements ICommentService {
 
     //2) Method to view comments by a username
     @Override
-    public ResponseEntity<?> commentByUsername(String username) {
+    public ResponseEntity<?> commentByUsername(String username, int pageNum, int pageSize) {
         //To retrieve comments by a user
-        List<Comment> commentList = commentRepository.findByUsername(username).get();
+        List<Comment> commentList = commentRepository.findByUsername(username).get().stream().skip(pageNum - 1)
+                .limit(pageSize).toList();
 
         if(commentList.isEmpty())
             return new ResponseEntity<>(String.format("Comments by %s not found.", username), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(commentList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(commentList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Comment-Page-Number", String.valueOf(pageNum))
+                .header("Comment-Page-Size", String.valueOf(pageSize))
+                .header("Comment-Total-Count", String.valueOf(commentList.size()))
+                .body(commentList);
+
     }
 
     //2b) Method to view comments on a book title
     @Override
-    public ResponseEntity<?> commentByTitle(String title) {
+    public ResponseEntity<?> commentByTitle(String title, int pageNum, int pageSize) {
         //To retrieve comments for a book through title
-        List<Comment> commentList = commentRepository.findByTitle(title).get();
+        List<Comment> commentList = commentRepository.findByTitle(title).get().stream().skip(pageNum - 1)
+                .limit(pageSize).collect(Collectors.toList());
 
         if(commentList.isEmpty())
             return new ResponseEntity<>(String.format("Comments on book titled: %s not found.", title), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(commentList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(commentList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Comment-Page-Number", String.valueOf(pageNum))
+                .header("Comment-Page-Size", String.valueOf(pageSize))
+                .header("Comment-Total-Count", String.valueOf(commentList.size()))
+                .body(commentList);
 
     }
 
     //3) Method to view all comments
     @Override
-    public ResponseEntity<?> allComments() {
+    public ResponseEntity<?> allComments(int pageNum, int pageSize) {
         //To retrieve all comments
-        List<Comment> allComments = commentRepository.findAll();
+        List<Comment> allComments = commentRepository.findAll().stream().skip(pageNum - 1).limit(pageSize)
+                .collect(Collectors.toList());
 
         if(allComments.isEmpty())
             return new ResponseEntity<>("No comments found", HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(allComments, HttpStatus.FOUND);
+        //return new ResponseEntity<>(allComments, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Comment-Page-Number", String.valueOf(pageNum))
+                .header("Comment-Page-Size", String.valueOf(pageSize))
+                .header("Comment-Total-Count", String.valueOf(allComments.size()))
+                .body(allComments);
     }
 
     //4) Method to delete comments by username

@@ -23,23 +23,27 @@ public class HandOutController {
     }
 
     @GetMapping("/school/{schoolName}")
-    public ResponseEntity<?> findHandOutBySchool(@PathVariable String schoolName) {
-        return handoutService.findHandOutBySchool(schoolName);
+    public ResponseEntity<?> findHandOutBySchool(@PathVariable String schoolName, @RequestParam(defaultValue = "1") int pageNum,
+                                                 @RequestParam(defaultValue = "10") int pageSize) {
+        return handoutService.findHandOutBySchool(schoolName, pageNum, pageSize);
     }
 
     @GetMapping("/faculty/{faculty}")
-    public ResponseEntity<?> findHandOutByFaculty(@PathVariable String faculty) {
-        return handoutService.findHandOutByFaculty(faculty);
+    public ResponseEntity<?> findHandOutByFaculty(@PathVariable String faculty, @RequestParam(defaultValue = "1") int pageNum,
+                                                  @RequestParam(defaultValue = "10") int pageSize) {
+        return handoutService.findHandOutByFaculty(faculty, pageNum, pageSize);
     }
 
     @GetMapping("/department/{department}")
-    public ResponseEntity<?> findHandOutByDepartment(@PathVariable String department) {
-        return handoutService.findHandOutByDepartment(department);
+    public ResponseEntity<?> findHandOutByDepartment(@PathVariable String department, @RequestParam(defaultValue = "1") int pageNum,
+                                                     @RequestParam(defaultValue = "10") int pageSize) {
+        return handoutService.findHandOutByDepartment(department, pageNum, pageSize);
     }
 
-    @GetMapping("/level")
-    public ResponseEntity<?> findHandOutBylevel(int level) {
-        return handoutService.findHandOutBylevel(level);
+    @GetMapping("/level/{level}")
+    public ResponseEntity<?> findHandOutBylevel(@PathVariable int level, @RequestParam(defaultValue = "1") int pageNum,
+                                                @RequestParam(defaultValue = "10") int pageSize) {
+        return handoutService.findHandOutBylevel(level, pageNum, pageSize);
     }
 
     @GetMapping("/courseCode/{courseCode}")

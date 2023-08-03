@@ -8,10 +8,10 @@ import org.springframework.http.ResponseEntity;
 
 public interface IHandOutService {
     ResponsePojo<HandOut> createHandout(HandOutCreateDto handOutCreateDto);
-    ResponseEntity<?> findHandOutBySchool(String schoolName);
-    ResponseEntity<?> findHandOutByFaculty(String faculty);
-    ResponseEntity<?> findHandOutByDepartment(String department);
-    ResponseEntity<?> findHandOutBylevel(int level);
+    ResponseEntity<?> findHandOutBySchool(String schoolName, int pageNum, int pageSize);
+    ResponseEntity<?> findHandOutByFaculty(String faculty, int pageNum, int pageSize);
+    ResponseEntity<?> findHandOutByDepartment(String department, int pageNum, int pageSize);
+    ResponseEntity<?> findHandOutBylevel(int level, int pageNum, int pageSize);
     ResponseEntity<?> findHandOutByCourseCode(String courseCode);
     ResponseEntity<?> findHandOutByCourseTitle(String courseTitle);
     ResponsePojo<HandOut> updateHandOut(HandOutUpdateDto handOutUpdateDto);

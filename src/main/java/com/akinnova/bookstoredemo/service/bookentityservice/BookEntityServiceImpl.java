@@ -41,11 +41,6 @@ public class BookEntityServiceImpl implements IBookEntityService {
     //1) Creating a method for creating a book object
     public ResponsePojo<BookEntity> createBook(BookEntityDto bookStoreDto){
 
-        //Checks if Book with the same title and volume already exists in the database
-//        if(bookStoreRepository.existsByTitle(bookStoreDto.getTitle()))
-//            throw new ApiException(String.format("Book with title: %s already exist",
-//                    bookStoreDto.getTitle()));
-
         BookEntity bookStore = BookEntity.builder()
                 .imageAddress(bookStoreDto.getImageAddress())
                 .title(bookStoreDto.getTitle())
@@ -72,24 +67,30 @@ public class BookEntityServiceImpl implements IBookEntityService {
     }
 
     //2) Method to find all books
-    public ResponseEntity<?> findAllBooks(){
+    public ResponseEntity<?> findAllBooks(int pageNum, int pageSize){
         //Only books that have not been deleted will be collected
         List<BookEntity> allBooks = bookStoreRepository.findAll()
-                .stream().filter((x)-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
+                .stream().skip(pageNum - 1).limit(pageSize).filter((x)-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
 
         //If book entity list is empty...
         if(allBooks.isEmpty()) {
             return new ResponseEntity<>("Books not found", HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(allBooks, HttpStatus.FOUND);
+        //return new ResponseEntity<>(allBooks, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Book-Page-Number", String.valueOf(pageNum))
+                .header("Book-Page-Size", String.valueOf(pageSize))
+                .header("Book-Total-Count", String.valueOf(allBooks.size()))
+                .body(allBooks);
     }
 
     //3) Methods to find books based on different parameters
     //defining some methods to query the repository
-    public ResponseEntity<?> findBookByAuthor(String author){
-
+    public ResponseEntity<?> findBookByAuthor(String author, int pageNum, int pageSize){
+;
         List<BookEntity> bookEntityList = bookStoreRepository.findBookByAuthor(author).get().stream()
+                .skip(pageNum - 1).limit(pageSize)
                 .filter(x-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
 
         //If book entity list is empty...
@@ -97,7 +98,12 @@ public class BookEntityServiceImpl implements IBookEntityService {
             return new ResponseEntity<>(String.format("Books by author: %s not found", author), HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(bookEntityList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(bookEntityList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Book-Page-Number", String.valueOf(pageNum))
+                .header("Book-Page-Size", String.valueOf(pageSize))
+                .header("Book-Total-Count", String.valueOf(bookEntityList.size()))
+                .body(bookEntityList);
     }
 
     //4) Method to find book by title
@@ -114,16 +120,21 @@ public class BookEntityServiceImpl implements IBookEntityService {
     }
 
     //5) Method to find book by genre
-    public ResponseEntity<?> findBooksByGenre(String genre){
+    public ResponseEntity<?> findBooksByGenre(String genre, int pageNum, int pageSize){
         //Return only books that have not been deleted
         List<BookEntity> books = bookStoreRepository.findBooksByGenre(genre).get()
-                .stream().filter(x-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
+                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getDeleteStatus().equals(false)).collect(Collectors.toList());
         //If books is null
         if (books.isEmpty()){
             return new ResponseEntity<>(String.format("Books by title: %s not found", genre), HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(books, HttpStatus.FOUND);
+        //return new ResponseEntity<>(books, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Book-Page-Number", String.valueOf(pageNum))
+                .header("Book-Page-Size", String.valueOf(pageSize))
+                .header("Book-Total-Count", String.valueOf(books.size()))
+                .body(books);
     }
 
     //6) Method to find book by serial number

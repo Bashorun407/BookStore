@@ -8,11 +8,11 @@ import org.springframework.http.ResponseEntity;
 
 public interface IStudentProjectService {
     ResponsePojo<StudentProject> createProject(StudentProjectCreateDto studentProjectCreateDto);
-    ResponseEntity<?> findProjectBySchool(String schoolName);
-    ResponseEntity<?> findProjectByFaculty(String faculty);
-    ResponseEntity<?> findProjectByDepartment(String department);
+    ResponseEntity<?> findProjectBySchool(String schoolName, int pageNum, int pageSize);
+    ResponseEntity<?> findProjectByFaculty(String faculty, int pageNum, int pageSize);
+    ResponseEntity<?> findProjectByDepartment(String department, int pageNum, int pageSize);
     ResponseEntity<?> findProjectByProjectTitle(String projectTitle);
-    ResponseEntity<?> findProjectByAuthor(String author);
+    ResponseEntity<?> findProjectByAuthor(String author, int pageNum, int pageSize);
     ResponsePojo<StudentProject> updateProject(StudentProjectUpdateDto studentProjectUpdateDto);
     ResponseEntity<?> deleteProject(String serialNumber);
 }

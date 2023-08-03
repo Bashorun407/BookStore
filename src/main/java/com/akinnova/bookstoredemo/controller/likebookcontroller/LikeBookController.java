@@ -33,7 +33,7 @@ public class LikeBookController {
 
     //3) Method to retrieve all book-likes in the database
     @GetMapping("/allLikes")
-    public ResponseEntity<?> allReviews() {
-        return likeBookService.allLikes();
+    public ResponseEntity<?> allReviews(@RequestParam(defaultValue = "1") int pageNum, @RequestParam(defaultValue = "10") int pageSize) {
+        return likeBookService.allLikes(pageNum, pageSize);
     }
 }

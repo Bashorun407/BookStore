@@ -27,13 +27,14 @@ public class BookEntityController {
     }
 
     @GetMapping("/auth/allBooks")
-    public ResponseEntity<?> findAllBooks(){
-        return bookStoreService.findAllBooks();
+    public ResponseEntity<?> findAllBooks(@RequestParam(name = "pageNum") int pageNum, @RequestParam(name = "pageSize") int pageSize){
+        return bookStoreService.findAllBooks(pageNum, pageSize);
     }
 
     @GetMapping("/auth/author/{author}")
-    public ResponseEntity<?> findBookByAuthor(@PathVariable String author){
-        return bookStoreService.findBookByAuthor(author);
+    public ResponseEntity<?> findBookByAuthor(@PathVariable String author, @RequestParam(defaultValue = "1") int pageNum,
+                                              @RequestParam(defaultValue = "10") int pageSize){
+        return bookStoreService.findBookByAuthor(author, pageNum, pageSize);
     }
 
     @GetMapping("/auth/title/{title}")
@@ -42,8 +43,9 @@ public class BookEntityController {
     }
 
     @GetMapping("/auth/genre/{genre}")
-    public ResponseEntity<?> findBooksByGenre(@PathVariable String genre){
-        return bookStoreService.findBooksByGenre(genre);
+    public ResponseEntity<?> findBooksByGenre(@PathVariable String genre, @RequestParam(defaultValue = "1") int pageNum,
+                                              @RequestParam(defaultValue = "10") int pageSize){
+        return bookStoreService.findBooksByGenre(genre, pageNum, pageSize);
     }
 
     @GetMapping("/auth/serialNumber/{serialNumber}")
@@ -67,7 +69,7 @@ public class BookEntityController {
                                                      @RequestParam(name = "author", required = false) String author,
                                                      @RequestParam(name = "genre", required = false) String genre,
                                                      @RequestParam(name = "serialNumber", required = false) String serialNumber,
-                                                     Pageable pageable) {
+                                                    @RequestParam Pageable pageable) {
         return bookStoreService.searchBook(title, author, genre, serialNumber, pageable);
     }
 }

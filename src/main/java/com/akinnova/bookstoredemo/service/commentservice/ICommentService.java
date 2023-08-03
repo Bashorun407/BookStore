@@ -12,9 +12,9 @@ import java.util.List;
 
 public interface ICommentService {
     ResponsePojo<Comment> commentAboutBook(CommentDto commentDto);
-    ResponseEntity<?> commentByUsername(String username);
-    ResponseEntity<?> commentByTitle(String title);
-    ResponseEntity<?> allComments();
+    ResponseEntity<?> commentByUsername(String username, int pageNum, int pageSize);
+    ResponseEntity<?> commentByTitle(String title, int pageNum, int pageSize);
+    ResponseEntity<?> allComments(int pageNum, int pageSize);
     ResponseEntity<?> deleteComment(CommentDeleteDto commentDeleteDto);
     ResponseEntity<?> searchComment(String title, String username, Pageable pageable);
 

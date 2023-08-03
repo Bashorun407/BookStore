@@ -27,20 +27,24 @@ public class CommentController {
 
     //2) Method to view comments by a username
     @GetMapping("/auth/commentUser/{username}")
-    public ResponseEntity<?> commentByUsername(@PathVariable(name = "username") String username) {
-        return commentService.commentByUsername(username);
+    public ResponseEntity<?> commentByUsername(@PathVariable(name = "username") String username,
+                                               @RequestParam(defaultValue = "1") int pageNum,
+                                               @RequestParam(defaultValue = "10") int pageSize) {
+        return commentService.commentByUsername(username, pageNum, pageSize);
     }
 
     //2b) Method to view comments on a book title
     @GetMapping("/auth/commentTitle/{title}")
-    public ResponseEntity<?> commentByTitle(@PathVariable(name = "title") String title) {
-        return commentService.commentByTitle(title);
+    public ResponseEntity<?> commentByTitle(@PathVariable(name = "title") String title,
+                                            @RequestParam(defaultValue = "1") int pageNum,
+                                            @RequestParam(defaultValue = "10") int pageSize) {
+        return commentService.commentByTitle(title, pageNum, pageSize);
     }
 
     //3) Method to view all comments
     @GetMapping("/auth/comment")
-    public ResponseEntity<?> allComments() {
-        return commentService.allComments();
+    public ResponseEntity<?> allComments(@RequestParam(defaultValue = "1") int pageNum, @RequestParam(defaultValue = "10") int pageSize) {
+        return commentService.allComments(pageNum, pageSize);
     }
 
     //4) Method to delete comments by username

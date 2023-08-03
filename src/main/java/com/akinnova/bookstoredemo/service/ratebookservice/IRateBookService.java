@@ -10,5 +10,5 @@ import java.util.List;
 public interface IRateBookService {
     ResponseEntity<?> rateBook(RateDto rateDto);
     ResponseEntity<?> titleRates(String title);
-    ResponseEntity<?> allRates();
+    ResponseEntity<?> allRates(int pageNum, int pageSize);
 }

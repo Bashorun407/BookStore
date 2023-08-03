@@ -73,39 +73,54 @@ public class StudentProjectServiceImpl implements IStudentProjectService {
     }
 
     @Override
-    public ResponseEntity<?> findProjectBySchool(String schoolName) {
+    public ResponseEntity<?> findProjectBySchool(String schoolName, int pageNum, int pageSize) {
         List<StudentProject> studentProjectList = studentProjectRepository.findBySchoolName(schoolName).get()
-                .stream().filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
 
         if(studentProjectList.isEmpty())
             return new ResponseEntity<>(String.format("Student projects with this school name: %s, are not available yet",
                     schoolName), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Project-Page-Number", String.valueOf(pageNum))
+                .header("Project-Page-Size", String.valueOf(pageSize))
+                .header("Project-Total-Count", String.valueOf(studentProjectList.size()))
+                .body(studentProjectList);
     }
 
     @Override
-    public ResponseEntity<?> findProjectByFaculty(String faculty) {
+    public ResponseEntity<?> findProjectByFaculty(String faculty, int pageNum, int pageSize) {
         List<StudentProject> studentProjectList = studentProjectRepository.findByFaculty(faculty).get()
-                .stream().filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
 
         if(studentProjectList.isEmpty())
             return new ResponseEntity<>(String.format("Student projects with faculty: %s, are not available yet",
                     faculty), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Project-Page-Number", String.valueOf(pageNum))
+                .header("Project-Page-Size", String.valueOf(pageSize))
+                .header("Project-Total-Count", String.valueOf(studentProjectList.size()))
+                .body(studentProjectList);
     }
 
     @Override
-    public ResponseEntity<?> findProjectByDepartment(String department) {
+    public ResponseEntity<?> findProjectByDepartment(String department, int pageNum, int pageSize) {
         List<StudentProject> studentProjectList = studentProjectRepository.findByDepartment(department).get()
-                .stream().filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
 
         if(studentProjectList.isEmpty())
             return new ResponseEntity<>(String.format("Student projects with this department: %s, are not available yet",
                     department), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Project-Page-Number", String.valueOf(pageNum))
+                .header("Project-Page-Size", String.valueOf(pageSize))
+                .header("Project-Total-Count", String.valueOf(studentProjectList.size()))
+                .body(studentProjectList);
     }
 
     @Override
@@ -121,15 +136,20 @@ public class StudentProjectServiceImpl implements IStudentProjectService {
     }
 
     @Override
-    public ResponseEntity<?> findProjectByAuthor(String author) {
+    public ResponseEntity<?> findProjectByAuthor(String author, int pageNum, int pageSize) {
         List<StudentProject> studentProjectList = studentProjectRepository.findByCreatedBy(author).get()
-                .stream().filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
 
         if(studentProjectList.isEmpty())
             return new ResponseEntity<>(String.format("Student projects with author name: %s, are not available yet",
                     author), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Project-Page-Number", String.valueOf(pageNum))
+                .header("Project-Page-Size", String.valueOf(pageSize))
+                .header("Project-Total-Count", String.valueOf(studentProjectList.size()))
+                .body(studentProjectList);
     }
 
     @Override

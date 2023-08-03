@@ -70,52 +70,72 @@ public class HandoutServiceImpl implements IHandOutService {
     }
 
     @Override
-    public ResponseEntity<?> findHandOutBySchool(String schoolName) {
+    public ResponseEntity<?> findHandOutBySchool(String schoolName, int pageNum, int pageSize) {
 
         List<HandOut> handOutList = handOutRepository.findBySchoolName(schoolName).get()
-                .stream().filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).toList();
 
         if(handOutList.isEmpty())
             return new ResponseEntity<>(String.format("Hand-outs with this school name: %s, are not available yet",
                     schoolName), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Handout-Page-Number", String.valueOf(pageNum))
+                .header("Handout-Page-Size", String.valueOf(pageSize))
+                .header("Handout-Total-Count", String.valueOf(handOutList.size()))
+                .body(handOutList);
     }
 
     @Override
-    public ResponseEntity<?> findHandOutByFaculty(String faculty) {
+    public ResponseEntity<?> findHandOutByFaculty(String faculty, int pageNum, int pageSize) {
         List<HandOut> handOutList = handOutRepository.findByFaculty(faculty).get()
-                .stream().filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
 
         if(handOutList.isEmpty())
             return new ResponseEntity<>(String.format("Hand-outs with faculty: %s, are not available yet",
                     faculty), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Handout-Page-Number", String.valueOf(pageNum))
+                .header("Handout-Page-Size", String.valueOf(pageSize))
+                .header("Handout-Total-Count", String.valueOf(handOutList.size()))
+                .body(handOutList);
     }
 
     @Override
-    public ResponseEntity<?> findHandOutByDepartment(String department) {
+    public ResponseEntity<?> findHandOutByDepartment(String department, int pageNum, int pageSize) {
         List<HandOut> handOutList = handOutRepository.findByDepartment(department).get()
-                .stream().filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
 
         if(handOutList.isEmpty())
             return new ResponseEntity<>(String.format("Hand-outs with this department: %s, are not available yet",
                     department), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Handout-Page-Number", String.valueOf(pageNum))
+                .header("Handout-Page-Size", String.valueOf(pageSize))
+                .header("Handout-Total-Count", String.valueOf(handOutList.size()))
+                .body(handOutList);
     }
 
     @Override
-    public ResponseEntity<?> findHandOutBylevel(int level) {
+    public ResponseEntity<?> findHandOutBylevel(int level, int pageNum, int pageSize) {
         List<HandOut> handOutList = handOutRepository.findByLevel(level).get()
-                .stream().filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
 
         if(handOutList.isEmpty())
             return new ResponseEntity<>(String.format("Hand-outs with this level: %d, are not available yet",
                     level), HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
+        //return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Handout-Page-Number", String.valueOf(pageNum))
+                .header("Handout-Page-Size", String.valueOf(pageSize))
+                .header("Handout-Total-Count", String.valueOf(handOutList.size()))
+                .body(handOutList);
     }
 
     @Override
@@ -146,7 +166,7 @@ public class HandoutServiceImpl implements IHandOutService {
         Optional<HandOut> handOut = handOutRepository.findByCourseCode(handOutUpdateDto.getCourseCode())
                 .filter(x -> x.getActiveStatus().equals(true));
 
-        if(ObjectUtils.isEmpty(handOut)){
+        if(handOut.isEmpty()){
             ResponsePojo<HandOut> responsePojo = new ResponsePojo<>();
             responsePojo.setStatusCode(ResponseUtils.NOT_FOUND);
             responsePojo.setSuccess(false);

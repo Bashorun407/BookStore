@@ -17,6 +17,7 @@ import com.akinnova.bookstoredemo.response.ResponseUtils;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,6 +36,7 @@ import org.springframework.util.StringUtils;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomerServiceImpl implements ICustomerService {
@@ -142,14 +144,20 @@ public class CustomerServiceImpl implements ICustomerService {
 
     //5) Method to find all customers
     @Override
-    public ResponseEntity<?> findAllCustomers() {
-        List<Customer> customerList = customerRepository.findAll();
+    public ResponseEntity<?> findAllCustomers(int pageNum, int pageSize) {
+        List<Customer> customerList = customerRepository.findAll().stream().skip(pageNum - 1).limit(pageSize)
+                .collect(Collectors.toList());
 
         if(customerList.isEmpty())
             return new ResponseEntity<>("Customer with email: %s does not exist",
                     HttpStatus.NOT_FOUND);
 
-    return new ResponseEntity<>(customerList, HttpStatus.FOUND);
+    //return new ResponseEntity<>(customerList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Customer-Page-Number", String.valueOf(pageNum))
+                .header("Customer-Page-Size", String.valueOf(pageSize))
+                .header("Customer-Total-Count", String.valueOf(customerList.size()))
+                .body(customerList);
     }
 
     //6) Method to Update Customer password....email

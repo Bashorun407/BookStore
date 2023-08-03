@@ -13,11 +13,11 @@ import java.util.List;
 public interface IAdminService {
     ResponsePojo<AdminEntity> CreateAdmin (AdminDto adminDto);
     ResponseEntity<?> login(LoginDto loginDto);
-    ResponseEntity<?> findAllAdmin();
+    ResponseEntity<?> findAllAdmin(int pageNum, int pageSize);
     ResponseEntity<?> findAdminByUsername(String username);
     ResponseEntity<?> findAdminByEmail(String email);
     ResponsePojo<AdminEntity> updateAdmin(AdminDto adminDto);
     ResponseEntity<?> deleteAdmin(AdminDto adminDto);
     ResponseEntity<?> searchAdmin(String firstName, String lastName, String username,
-                                                String email, String contactNumber);
+                                                String email, String contactNumber, int pageNum, int pageSize);
 }

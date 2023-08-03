@@ -48,8 +48,9 @@ public class CustomerController {
 
     //5) Method to find all customers
     @GetMapping("/customers")
-    public ResponseEntity<?> findAllCustomers() {
-        return customerService.findAllCustomers();
+    public ResponseEntity<?> findAllCustomers(@RequestParam(defaultValue = "1") int pageNum,
+                                              @RequestParam(defaultValue = "10") int pageSize) {
+        return customerService.findAllCustomers(pageNum, pageSize);
     }
 
     //6) Method to Update Customer password....email

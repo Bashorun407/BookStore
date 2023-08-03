@@ -8,12 +8,10 @@ import com.akinnova.bookstoredemo.service.adminservice.AdminServiceImpl;
 
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.print.Pageable;
-import java.util.List;
 
 @AllArgsConstructor
 @RestController
@@ -35,8 +33,8 @@ public class AdminController {
 
     //2) Method to get all Admins
     @GetMapping("/allAdmin")
-    public ResponseEntity<?> findAllAdmin(){
-        return adminService.findAllAdmin();
+    public ResponseEntity<?> findAllAdmin(int pageNum, int pageSize){
+        return adminService.findAllAdmin(pageNum, pageSize);
     }
 
     //3) Method to get an Admin
@@ -70,7 +68,10 @@ public class AdminController {
                                                        @RequestParam(name = "lastName", required = false) String lastName,
                                                        @RequestParam(name = "username", required = false) String username,
                                                        @RequestParam(name = "email", required = false) String email,
-                                                       @RequestParam(name = "contactNumber", required = false) String contactNumber){
-        return adminService.searchAdmin(firstName, lastName, username, email, contactNumber);
+                                                       @RequestParam(name = "contactNumber", required = false) String contactNumber,
+                                                        @RequestParam(name = "pageNum", required = false) int pageNum,
+                                                        @RequestParam(name = "pageSize", required = false) int pageSize)
+    {
+        return adminService.searchAdmin(firstName, lastName, username, email, contactNumber, pageNum, pageSize);
     }
 }

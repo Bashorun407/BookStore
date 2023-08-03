@@ -23,18 +23,21 @@ public class StudentProjectController {
     }
 
     @GetMapping("/school/{schoolName}")
-    public ResponseEntity<?> findProjectBySchool(@PathVariable String schoolName) {
-        return studentProjectService.findProjectBySchool(schoolName);
+    public ResponseEntity<?> findProjectBySchool(@PathVariable String schoolName, @RequestParam(defaultValue = "1") int pageNum,
+                                                 @RequestParam(defaultValue = "10") int pageSize) {
+        return studentProjectService.findProjectBySchool(schoolName, pageNum, pageSize);
     }
 
     @GetMapping("/faculty/{faculty}")
-    public ResponseEntity<?> findProjectByFaculty(@PathVariable String faculty) {
-        return studentProjectService.findProjectByFaculty(faculty);
+    public ResponseEntity<?> findProjectByFaculty(@PathVariable String faculty, @RequestParam(defaultValue = "1") int pageNum,
+                                                  @RequestParam(defaultValue = "10") int pageSize) {
+        return studentProjectService.findProjectByFaculty(faculty, pageNum, pageSize);
     }
 
     @GetMapping("/department/{department}")
-    public ResponseEntity<?> findProjectByDepartment(@PathVariable String department) {
-        return studentProjectService.findProjectByDepartment(department);
+    public ResponseEntity<?> findProjectByDepartment(@PathVariable String department, @RequestParam(defaultValue = "1") int pageNum,
+                                                     @RequestParam(defaultValue = "10") int pageSize) {
+        return studentProjectService.findProjectByDepartment(department, pageNum, pageSize);
     }
 
     @GetMapping("/title/{projectTitle}")
@@ -43,8 +46,9 @@ public class StudentProjectController {
     }
 
     @GetMapping("/author/{author}")
-    public ResponseEntity<?> findProjectByAuthor(@PathVariable String author) {
-        return studentProjectService.findProjectByAuthor(author);
+    public ResponseEntity<?> findProjectByAuthor(@PathVariable String author, @RequestParam(defaultValue = "1") int pageNum,
+                                                 @RequestParam(defaultValue = "10") int pageSize) {
+        return studentProjectService.findProjectByAuthor(author, pageNum, pageSize);
     }
 
     @PutMapping("/update")

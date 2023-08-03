@@ -104,13 +104,19 @@ public class RateBookServiceImpl implements IRateBookService {
 
     //3) Method to retrieve all reviews in the database
     @Override
-    public ResponseEntity<?> allRates() {
+    public ResponseEntity<?> allRates(int pageNum, int pageSize) {
         //To retrieve all reviews in the review database
-        List<RateBook> rateBookList = rateBookRepository.findAll();
+        List<RateBook> rateBookList = rateBookRepository.findAll().stream().skip(pageNum - 1).limit(pageSize).toList();
 
         if(rateBookList.isEmpty())
             return new ResponseEntity<>("There are no reviews yet", HttpStatus.NO_CONTENT);
 
-        return new ResponseEntity<>(rateBookList, HttpStatus.OK);
+        //return new ResponseEntity<>(rateBookList, HttpStatus.OK);
+
+        return ResponseEntity.ok()
+                .header("Review-Page-Number", String.valueOf(pageNum))
+                .header("Review-Page-Size", String.valueOf(pageSize))
+                .header("Review-Total-Count", String.valueOf(rateBookList.size()))
+                .body(rateBookList);
     }
 }

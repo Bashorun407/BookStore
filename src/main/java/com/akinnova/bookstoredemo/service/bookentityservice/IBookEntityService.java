@@ -13,10 +13,10 @@ import java.util.List;
 
 public interface IBookEntityService {
     ResponsePojo<BookEntity> createBook(BookEntityDto bookStoreDto);
-    ResponseEntity<?> findAllBooks();
-    ResponseEntity<?> findBookByAuthor(String author);
+    ResponseEntity<?> findAllBooks(int pageNum, int pageSize);
+    ResponseEntity<?> findBookByAuthor(String author, int pageNum, int pageSize);
     ResponseEntity<?> findBookByTitle(String title);
-    ResponseEntity<?> findBooksByGenre(String genre);
+    ResponseEntity<?> findBooksByGenre(String genre, int pageNum, int pageSize);
     ResponseEntity<?> findBookBySerialNumber(String serialNumber);
     ResponsePojo<BookEntity> updateBookContent(BookUpdateDto bookUpdateDto);
     ResponseEntity<?> deleteBook(String serialNumber);

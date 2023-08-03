@@ -14,7 +14,7 @@ public interface ICustomerService {
     ResponseEntity<?> login(LoginDto loginDto);
     ResponseEntity<?> findCustomerByUsername(String username);
     ResponseEntity<?> findCustomerByEmail(String email);
-    ResponseEntity<?> findAllCustomers();
+    ResponseEntity<?> findAllCustomers(int pageNum, int pageSize);
     ResponsePojo<Customer> updateCustomer(CustomerUpdateDto updateCustomerDto);
     ResponseEntity<?> searchCustomer(String firstName, String lastName, String username, String email, Pageable pageable);
 }
