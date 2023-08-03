@@ -109,11 +109,11 @@
 	</build>
 	<profiles>
 		<profile>
-			<id>BookApp</id>
+			<id>BookStore</id>
 
 			<properties>
 				<spring.profiles.active>
-					BookApp
+					BookStore
 				</spring.profiles.active>
 			</properties>
 		</profile>
