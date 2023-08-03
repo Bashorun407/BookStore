@@ -38,7 +38,7 @@ public class HandoutServiceImpl implements IHandOutService {
             responsePojo.setStatusCode(ResponseUtils.BAD_REQUEST);
             responsePojo.setSuccess(false);
             responsePojo.setMessage(String.format("Hand-out with course code: %s, already exists for the Institution" +
-                    ", faculty, department and level. Upload a new book."));
+                    ", faculty, department and level. Upload a new book.", handOutCreateDto.getCourseCode()));
 
             return responsePojo;
         }
@@ -71,6 +71,7 @@ public class HandoutServiceImpl implements IHandOutService {
 
     @Override
     public ResponseEntity<?> findHandOutBySchool(String schoolName) {
+
         List<HandOut> handOutList = handOutRepository.findBySchoolName(schoolName).get()
                 .stream().filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
 
@@ -121,7 +122,7 @@ public class HandoutServiceImpl implements IHandOutService {
     public ResponseEntity<?> findHandOutByCourseCode(String courseCode) {
         HandOut handOut = handOutRepository.findByCourseCode(courseCode).get();
 
-        if(ObjectUtils.isEmpty(handOut) || (handOut.getActiveStatus() == false))
+        if(ObjectUtils.isEmpty(handOut) || (!handOut.getActiveStatus()))
             return new ResponseEntity<>(String.format("Hand out with this school name: %s, does not exist yet",
                     courseCode), HttpStatus.NOT_FOUND);
 
@@ -133,7 +134,7 @@ public class HandoutServiceImpl implements IHandOutService {
 
         HandOut handOut = handOutRepository.findByCourseCode(courseTitle).get();
 
-        if(ObjectUtils.isEmpty(handOut) || (handOut.getActiveStatus() == false))
+        if(ObjectUtils.isEmpty(handOut) || (!handOut.getActiveStatus()))
             return new ResponseEntity<>(String.format("Hand out with this course title: %s, is not available",
                     courseTitle), HttpStatus.NOT_FOUND);
 
@@ -183,7 +184,7 @@ public class HandoutServiceImpl implements IHandOutService {
 
         HandOut handOut = handOutRepository.findBySerialNumber(serialNumber).get();
 
-        if(ObjectUtils.isEmpty(handOut) || (handOut.getActiveStatus() == false))
+        if(ObjectUtils.isEmpty(handOut) || (!handOut.getActiveStatus()))
             return new ResponseEntity<>(String.format("Hand-out with serial number: %s does not exist", serialNumber),
                     HttpStatus.NOT_FOUND);
 

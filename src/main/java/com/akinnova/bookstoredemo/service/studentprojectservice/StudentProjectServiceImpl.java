@@ -1,5 +1,6 @@
 package com.akinnova.bookstoredemo.service.studentprojectservice;
 
+import com.akinnova.bookstoredemo.Exception.ApiException;
 import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectCreateDto;
 import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectUpdateDto;
 
@@ -40,8 +41,8 @@ public class StudentProjectServiceImpl implements IStudentProjectService {
             ResponsePojo<StudentProject> responsePojo = new ResponsePojo<>();
             responsePojo.setStatusCode(ResponseUtils.BAD_REQUEST);
             responsePojo.setSuccess(false);
-            responsePojo.setMessage(String.format("Hand-out with course code: %s, already exists for the Institution" +
-                    ", faculty, department and level. Upload a new book."));
+            responsePojo.setMessage(String.format("Student project with title: %s, already exists for the Institution" +
+                    ", faculty, department and level. Upload a new book.", studentProjectCreateDto.getProjectTitle()));
 
             return responsePojo;
         }
@@ -112,7 +113,7 @@ public class StudentProjectServiceImpl implements IStudentProjectService {
 
         StudentProject studentProject = studentProjectRepository.findByProjectTitle(projectTitle).get();
 
-        if(ObjectUtils.isEmpty(studentProject) || (studentProject.getActiveStatus() == false))
+        if(ObjectUtils.isEmpty(studentProject) || (!studentProject.getActiveStatus()))
             return new ResponseEntity<>(String.format("Student project with this project title: %s, is not available",
                     projectTitle), HttpStatus.NOT_FOUND);
 
@@ -136,13 +137,9 @@ public class StudentProjectServiceImpl implements IStudentProjectService {
         Optional<StudentProject> studentProjectOptional = studentProjectRepository.findByProjectTitle(studentProjectUpdateDto.getProjectTitle())
                 .filter(x -> x.getActiveStatus().equals(true));
 
-        if(ObjectUtils.isEmpty(studentProjectOptional)){
-            ResponsePojo<StudentProject> responsePojo = new ResponsePojo<>();
-            responsePojo.setStatusCode(ResponseUtils.NOT_FOUND);
-            responsePojo.setSuccess(false);
-            responsePojo.setMessage(String.format("Student project with title: %s, does not exist", studentProjectUpdateDto.getProjectTitle()));
-            return responsePojo;
-        }
+        studentProjectOptional.orElseThrow(()-> new ApiException(String.format("Student project with title: %s, does not exist",
+                studentProjectUpdateDto.getProjectTitle())));
+//
 
         StudentProject studentProjectToUpdate = studentProjectOptional.get();
         studentProjectToUpdate.setImageAddress(studentProjectUpdateDto.getImageAddress());
@@ -170,7 +167,7 @@ public class StudentProjectServiceImpl implements IStudentProjectService {
     public ResponseEntity<?> deleteProject(String serialNumber) {
         StudentProject studentProject = studentProjectRepository.findBySerialNumber(serialNumber).get();
 
-        if(ObjectUtils.isEmpty(studentProject) || (studentProject.getActiveStatus() == false))
+        if(ObjectUtils.isEmpty(studentProject) || (!studentProject.getActiveStatus()))
             return new ResponseEntity<>(String.format("Student project with serial number: %s does not exist", serialNumber),
                     HttpStatus.NOT_FOUND);
 
