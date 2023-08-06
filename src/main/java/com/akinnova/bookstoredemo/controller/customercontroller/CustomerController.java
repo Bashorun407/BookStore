@@ -1,6 +1,7 @@
 package com.akinnova.bookstoredemo.controller.customercontroller;
 
 import com.akinnova.bookstoredemo.dto.customerdto.CustomerDto;
+import com.akinnova.bookstoredemo.dto.customerdto.CustomerResponseDto;
 import com.akinnova.bookstoredemo.dto.logindto.LoginDto;
 import com.akinnova.bookstoredemo.dto.customerdto.CustomerUpdateDto;
 import com.akinnova.bookstoredemo.entity.Customer;
@@ -24,7 +25,7 @@ public class CustomerController {
 
     //1) Method to create customer
     @PostMapping("/customer")
-    public ResponsePojo<Customer> createCustomer(@RequestBody CustomerDto customerDto){
+    public ResponsePojo<CustomerResponseDto> createCustomer(@RequestBody CustomerDto customerDto){
         return customerService.createCustomer(customerDto);
     }
 
@@ -55,7 +56,7 @@ public class CustomerController {
 
     //6) Method to Update Customer password....email
     @PutMapping("/customer")
-    public ResponsePojo<Customer> updateCustomer(@RequestBody CustomerUpdateDto updateCustomerDto) {
+    public ResponsePojo<CustomerResponseDto> updateCustomer(@RequestBody CustomerUpdateDto updateCustomerDto) {
         return customerService.updateCustomer(updateCustomerDto);
     }
 

@@ -12,7 +12,6 @@ import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,6 +23,7 @@ import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -69,18 +69,26 @@ public class CommentServiceImpl implements ICommentService {
     @Override
     public ResponseEntity<?> commentByUsername(String username, int pageNum, int pageSize) {
         //To retrieve comments by a user
-        List<Comment> commentList = commentRepository.findByUsername(username).get().stream().skip(pageNum - 1)
-                .limit(pageSize).toList();
+        List<Comment> commentList = commentRepository.findByUsername(username)
+                .orElseThrow(()-> new ApiException(String.format("Comments by %s not found.", username)));
 
-        if(commentList.isEmpty())
-            return new ResponseEntity<>(String.format("Comments by %s not found.", username), HttpStatus.NOT_FOUND);
+        List<CommentDto> respondDtoList = new ArrayList<>();
+
+        commentList.stream().skip(pageNum - 1).limit(pageSize)
+                .map(
+                        comment -> CommentDto.builder()
+                                .title(comment.getTitle())
+                                .username(comment.getUsername())
+                                .comment(comment.getComment())
+                                .build()
+                ).forEach(respondDtoList::add);
 
         //return new ResponseEntity<>(commentList, HttpStatus.FOUND);
         return ResponseEntity.ok()
                 .header("Comment-Page-Number", String.valueOf(pageNum))
                 .header("Comment-Page-Size", String.valueOf(pageSize))
-                .header("Comment-Total-Count", String.valueOf(commentList.size()))
-                .body(commentList);
+                .header("Comment-Total-Count", String.valueOf(respondDtoList.size()))
+                .body(respondDtoList);
 
     }
 
@@ -88,18 +96,27 @@ public class CommentServiceImpl implements ICommentService {
     @Override
     public ResponseEntity<?> commentByTitle(String title, int pageNum, int pageSize) {
         //To retrieve comments for a book through title
-        List<Comment> commentList = commentRepository.findByTitle(title).get().stream().skip(pageNum - 1)
-                .limit(pageSize).collect(Collectors.toList());
+        List<Comment> commentList = commentRepository.findByTitle(title)
+                .orElseThrow(()-> new ApiException(String.format("Comments on book titled: %s not found.", title)));
 
-        if(commentList.isEmpty())
-            return new ResponseEntity<>(String.format("Comments on book titled: %s not found.", title), HttpStatus.NOT_FOUND);
+        List<CommentDto> respondDtoList = new ArrayList<>();
+
+        commentList.stream().skip(pageNum - 1).limit(pageSize)
+                .map(
+                        comment -> CommentDto.builder()
+                                .title(comment.getTitle())
+                                .username(comment.getUsername())
+                                .comment(comment.getComment())
+                                .build()
+                ).forEach(respondDtoList::add);
+
 
         //return new ResponseEntity<>(commentList, HttpStatus.FOUND);
         return ResponseEntity.ok()
                 .header("Comment-Page-Number", String.valueOf(pageNum))
                 .header("Comment-Page-Size", String.valueOf(pageSize))
-                .header("Comment-Total-Count", String.valueOf(commentList.size()))
-                .body(commentList);
+                .header("Comment-Total-Count", String.valueOf(respondDtoList.size()))
+                .body(respondDtoList);
 
     }
 
@@ -107,18 +124,27 @@ public class CommentServiceImpl implements ICommentService {
     @Override
     public ResponseEntity<?> allComments(int pageNum, int pageSize) {
         //To retrieve all comments
-        List<Comment> allComments = commentRepository.findAll().stream().skip(pageNum - 1).limit(pageSize)
-                .collect(Collectors.toList());
+        List<Comment> allComments = commentRepository.findAll();
+        List<CommentDto> respondDtoList = new ArrayList<>();
 
         if(allComments.isEmpty())
             return new ResponseEntity<>("No comments found", HttpStatus.NOT_FOUND);
+
+        allComments.stream().skip(pageNum - 1).limit(pageSize)
+                .map(
+                        comment -> CommentDto.builder()
+                                .title(comment.getTitle())
+                                .username(comment.getUsername())
+                                .comment(comment.getComment())
+                                .build()
+                ).forEach(respondDtoList::add);
 
         //return new ResponseEntity<>(allComments, HttpStatus.FOUND);
         return ResponseEntity.ok()
                 .header("Comment-Page-Number", String.valueOf(pageNum))
                 .header("Comment-Page-Size", String.valueOf(pageSize))
-                .header("Comment-Total-Count", String.valueOf(allComments.size()))
-                .body(allComments);
+                .header("Comment-Total-Count", String.valueOf(respondDtoList.size()))
+                .body(respondDtoList);
     }
 
     //4) Method to delete comments by username

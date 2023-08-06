@@ -1,5 +1,6 @@
 package com.akinnova.bookstoredemo.controller.bookentitycontroller;
 
+import com.akinnova.bookstoredemo.dto.bookentitydto.BookResponseDto;
 import com.akinnova.bookstoredemo.dto.bookentitydto.BookUpdateDto;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.dto.bookentitydto.BookEntityDto;
@@ -22,7 +23,7 @@ public class BookEntityController {
    private BookEntityServiceImpl bookStoreService;
 
     @PostMapping("/auth/createBook")
-    public ResponsePojo<BookEntity> createBook(@RequestBody BookEntityDto bookStoreDto){
+    public ResponsePojo<BookResponseDto> createBook(@RequestBody BookEntityDto bookStoreDto){
         return bookStoreService.createBook(bookStoreDto);
     }
 
@@ -54,7 +55,7 @@ public class BookEntityController {
     }
 
     @PutMapping("/auth/book")
-    public ResponsePojo<BookEntity> updateBookContent(@RequestBody BookUpdateDto bookUpdateDto){
+    public ResponseEntity<BookResponseDto> updateBookContent(@RequestBody BookUpdateDto bookUpdateDto){
         return bookStoreService.updateBookContent(bookUpdateDto);
     }
 
