@@ -2,6 +2,7 @@ package com.akinnova.bookstoredemo.service.studentprojectservice;
 
 import com.akinnova.bookstoredemo.Exception.ApiException;
 import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectCreateDto;
+import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectResponseDto;
 import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectUpdateDto;
 
 import com.akinnova.bookstoredemo.entity.StudentProject;
@@ -11,12 +12,10 @@ import com.akinnova.bookstoredemo.response.ResponseUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -30,22 +29,7 @@ public class StudentProjectServiceImpl implements IStudentProjectService {
     }
 
     @Override
-    public ResponsePojo<StudentProject> createProject(StudentProjectCreateDto studentProjectCreateDto) {
-        //Check if book with the same title for an institution, faculty and department exists
-        Optional<StudentProject> studentProjectOptional = studentProjectRepository.findByProjectTitle(studentProjectCreateDto.getProjectTitle())
-                .filter(x-> (x.getSchoolName() == studentProjectCreateDto.getSchoolName()) && (x.getFaculty() == studentProjectCreateDto.getFaculty())
-                        && (x.getDepartment() == studentProjectCreateDto.getDepartment()));
-
-        //If Handout already exists for the institution, faculty, department and level, notify user.
-        if(!studentProjectOptional.isEmpty()){
-            ResponsePojo<StudentProject> responsePojo = new ResponsePojo<>();
-            responsePojo.setStatusCode(ResponseUtils.BAD_REQUEST);
-            responsePojo.setSuccess(false);
-            responsePojo.setMessage(String.format("Student project with title: %s, already exists for the Institution" +
-                    ", faculty, department and level. Upload a new book.", studentProjectCreateDto.getProjectTitle()));
-
-            return responsePojo;
-        }
+    public ResponsePojo<StudentProjectResponseDto> createProject(StudentProjectCreateDto studentProjectCreateDto) {
 
         StudentProject studentProject = StudentProject.builder()
                 .imageAddress(studentProjectCreateDto.getImageAddress())
@@ -58,138 +42,188 @@ public class StudentProjectServiceImpl implements IStudentProjectService {
                 .serialNumber(ResponseUtils.generateBookSerialNumber(5, studentProjectCreateDto.getProjectTitle()))
                 .createdBy(studentProjectCreateDto.getCreatedBy())
                 .email(studentProjectCreateDto.getEmail())
+                .activeStatus(true)
                 .createdAt(LocalDateTime.now())
                 .build();
 
         //Save to student repository
         StudentProject studentProjectToReturn = studentProjectRepository.save(studentProject);
+        StudentProjectResponseDto responseDto = StudentProjectResponseDto.builder()
+                .imageAddress(studentProjectToReturn.getImageAddress())
+                .projectTitle(studentProjectToReturn.getProjectTitle())
+                .summary(studentProjectToReturn.getSummary())
+                .price(studentProjectToReturn.getPrice())
+                .build();
 
-
-        ResponsePojo<StudentProject> responsePojo = new ResponsePojo<>();
+        ResponsePojo<StudentProjectResponseDto> responsePojo = new ResponsePojo<>();
         responsePojo.setMessage("Successfully created");
-        responsePojo.setData(studentProjectToReturn);
+        responsePojo.setData(responseDto);
 
         return responsePojo;
     }
 
     @Override
     public ResponseEntity<?> findProjectBySchool(String schoolName, int pageNum, int pageSize) {
-        List<StudentProject> studentProjectList = studentProjectRepository.findBySchoolName(schoolName).get()
-                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+        List<StudentProject> studentProjectList = studentProjectRepository.findBySchoolName(schoolName)
+                .orElseThrow(()->
+                        new ApiException(String.format("Student projects with this school name: %s, are not available yet",
+                        schoolName)));
 
-        if(studentProjectList.isEmpty())
-            return new ResponseEntity<>(String.format("Student projects with this school name: %s, are not available yet",
-                    schoolName), HttpStatus.NOT_FOUND);
+        List<StudentProjectResponseDto> responseDtoList = new ArrayList<>();
 
-        //return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        studentProjectList.stream().filter(x-> x.getActiveStatus().equals(Boolean.TRUE))
+                .skip(pageNum - 1).limit(pageSize).map(
+                        studentProject -> StudentProjectResponseDto.builder()
+                                .imageAddress(studentProject.getImageAddress())
+                                .projectTitle(studentProject.getProjectTitle())
+                                .summary(studentProject.getSummary())
+                                .price(studentProject.getPrice())
+                                .build()
+                ).forEach(responseDtoList::add);
+
+
         return ResponseEntity.ok()
                 .header("Project-Page-Number", String.valueOf(pageNum))
                 .header("Project-Page-Size", String.valueOf(pageSize))
-                .header("Project-Total-Count", String.valueOf(studentProjectList.size()))
-                .body(studentProjectList);
+                .header("Project-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
     }
 
     @Override
     public ResponseEntity<?> findProjectByFaculty(String faculty, int pageNum, int pageSize) {
-        List<StudentProject> studentProjectList = studentProjectRepository.findByFaculty(faculty).get()
-                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+        List<StudentProject> studentProjectList = studentProjectRepository.findByFaculty(faculty)
+                .orElseThrow(()-> new ApiException(String.format("Student projects with faculty: %s, are not available yet",
+                        faculty)));
 
-        if(studentProjectList.isEmpty())
-            return new ResponseEntity<>(String.format("Student projects with faculty: %s, are not available yet",
-                    faculty), HttpStatus.NOT_FOUND);
+        List<StudentProjectResponseDto> responseDtoList = new ArrayList<>();
 
-        //return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        studentProjectList.stream().filter(x-> x.getActiveStatus().equals(Boolean.TRUE))
+                .skip(pageNum - 1).limit(pageSize).map(
+                        studentProject -> StudentProjectResponseDto.builder()
+                                .imageAddress(studentProject.getImageAddress())
+                                .projectTitle(studentProject.getProjectTitle())
+                                .summary(studentProject.getSummary())
+                                .price(studentProject.getPrice())
+                                .build()
+                ).forEach(responseDtoList::add);
+
+
         return ResponseEntity.ok()
                 .header("Project-Page-Number", String.valueOf(pageNum))
                 .header("Project-Page-Size", String.valueOf(pageSize))
-                .header("Project-Total-Count", String.valueOf(studentProjectList.size()))
-                .body(studentProjectList);
+                .header("Project-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
     }
 
     @Override
     public ResponseEntity<?> findProjectByDepartment(String department, int pageNum, int pageSize) {
-        List<StudentProject> studentProjectList = studentProjectRepository.findByDepartment(department).get()
-                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+        List<StudentProject> studentProjectList = studentProjectRepository.findByDepartment(department)
+                .orElseThrow(()-> new ApiException(String.format("Student projects with this department: %s, are not available yet",
+                        department)));
 
-        if(studentProjectList.isEmpty())
-            return new ResponseEntity<>(String.format("Student projects with this department: %s, are not available yet",
-                    department), HttpStatus.NOT_FOUND);
+        List<StudentProjectResponseDto> responseDtoList = new ArrayList<>();
 
-        //return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        studentProjectList.stream().filter(x-> x.getActiveStatus().equals(Boolean.TRUE))
+                .skip(pageNum - 1).limit(pageSize).map(
+                        studentProject -> StudentProjectResponseDto.builder()
+                                .imageAddress(studentProject.getImageAddress())
+                                .projectTitle(studentProject.getProjectTitle())
+                                .summary(studentProject.getSummary())
+                                .price(studentProject.getPrice())
+                                .build()
+                ).forEach(responseDtoList::add);
+
+
         return ResponseEntity.ok()
                 .header("Project-Page-Number", String.valueOf(pageNum))
                 .header("Project-Page-Size", String.valueOf(pageSize))
-                .header("Project-Total-Count", String.valueOf(studentProjectList.size()))
-                .body(studentProjectList);
+                .header("Project-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
     }
 
     @Override
     public ResponseEntity<?> findProjectByProjectTitle(String projectTitle) {
 
-        StudentProject studentProject = studentProjectRepository.findByProjectTitle(projectTitle).get();
+        StudentProject studentProject = studentProjectRepository.findByProjectTitle(projectTitle)
+                .orElseThrow(()-> new ApiException(String.format("Student project with this project title: %s, is not available",
+                        projectTitle)));
 
-        if(ObjectUtils.isEmpty(studentProject) || (!studentProject.getActiveStatus()))
-            return new ResponseEntity<>(String.format("Student project with this project title: %s, is not available",
-                    projectTitle), HttpStatus.NOT_FOUND);
-
-        return new ResponseEntity<>(studentProject, HttpStatus.FOUND);
+        StudentProjectResponseDto responseDto = StudentProjectResponseDto.builder()
+                .imageAddress(studentProject.getImageAddress())
+                .projectTitle(studentProject.getProjectTitle())
+                .summary(studentProject.getSummary())
+                .price(studentProject.getPrice())
+                .build();
+        return ResponseEntity.ok(responseDto);
     }
 
     @Override
     public ResponseEntity<?> findProjectByAuthor(String author, int pageNum, int pageSize) {
-        List<StudentProject> studentProjectList = studentProjectRepository.findByCreatedBy(author).get()
-                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+        List<StudentProject> studentProjectList = studentProjectRepository.findByCreatedBy(author)
+                .orElseThrow(()-> new ApiException(String.format("Student projects with author name: %s, are not available yet",
+                        author)));
 
-        if(studentProjectList.isEmpty())
-            return new ResponseEntity<>(String.format("Student projects with author name: %s, are not available yet",
-                    author), HttpStatus.NOT_FOUND);
+        List<StudentProjectResponseDto> responseDtoList = new ArrayList<>();
 
-        //return new ResponseEntity<>(studentProjectList, HttpStatus.FOUND);
+        studentProjectList.stream().filter(x-> x.getActiveStatus().equals(Boolean.TRUE))
+                .skip(pageNum - 1).limit(pageSize).map(
+                        studentProject -> StudentProjectResponseDto.builder()
+                                .imageAddress(studentProject.getImageAddress())
+                                .projectTitle(studentProject.getProjectTitle())
+                                .summary(studentProject.getSummary())
+                                .price(studentProject.getPrice())
+                                .build()
+                ).forEach(responseDtoList::add);
+
+
         return ResponseEntity.ok()
                 .header("Project-Page-Number", String.valueOf(pageNum))
                 .header("Project-Page-Size", String.valueOf(pageSize))
-                .header("Project-Total-Count", String.valueOf(studentProjectList.size()))
-                .body(studentProjectList);
+                .header("Project-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
     }
 
     @Override
-    public ResponsePojo<StudentProject> updateProject(StudentProjectUpdateDto studentProjectUpdateDto) {
-        Optional<StudentProject> studentProjectOptional = studentProjectRepository.findByProjectTitle(studentProjectUpdateDto.getProjectTitle())
-                .filter(x -> x.getActiveStatus().equals(true));
+    public ResponsePojo<StudentProjectResponseDto> updateProject(StudentProjectUpdateDto studentProjectUpdateDto) {
+        StudentProject studentProject = studentProjectRepository.findByProjectTitle(studentProjectUpdateDto.getProjectTitle())
+                .filter(x -> x.getActiveStatus().equals(Boolean.TRUE))
+                .orElseThrow(()-> new ApiException(String.format("Student project with title: %s, does not exist",
+                        studentProjectUpdateDto.getProjectTitle())));
 
-        studentProjectOptional.orElseThrow(()-> new ApiException(String.format("Student project with title: %s, does not exist",
-                studentProjectUpdateDto.getProjectTitle())));
-//
-
-        StudentProject studentProjectToUpdate = studentProjectOptional.get();
-        studentProjectToUpdate.setImageAddress(studentProjectUpdateDto.getImageAddress());
-        studentProjectToUpdate.setSchoolName(studentProjectUpdateDto.getSchoolName());
-        studentProjectToUpdate.setFaculty(studentProjectUpdateDto.getFaculty());
-        studentProjectToUpdate.setDepartment(studentProjectUpdateDto.getDepartment());
-        studentProjectToUpdate.setProjectTitle(studentProjectUpdateDto.getProjectTitle());
-        studentProjectToUpdate.setSummary(studentProjectUpdateDto.getSummary());
-        studentProjectToUpdate.setPrice(studentProjectUpdateDto.getPrice());
-        studentProjectToUpdate.setModifiedBy(studentProjectUpdateDto.getModifiedBy());
-        studentProjectToUpdate.setEmail(studentProjectUpdateDto.getEmail());
-        studentProjectToUpdate.setModifiedAt(LocalDateTime.now());
+        studentProject.setImageAddress(studentProjectUpdateDto.getImageAddress());
+        studentProject.setSchoolName(studentProjectUpdateDto.getSchoolName());
+        studentProject.setFaculty(studentProjectUpdateDto.getFaculty());
+        studentProject.setDepartment(studentProjectUpdateDto.getDepartment());
+        studentProject.setProjectTitle(studentProjectUpdateDto.getProjectTitle());
+        studentProject.setSummary(studentProjectUpdateDto.getSummary());
+        studentProject.setPrice(studentProjectUpdateDto.getPrice());
+        studentProject.setModifiedBy(studentProjectUpdateDto.getModifiedBy());
+        studentProject.setEmail(studentProjectUpdateDto.getEmail());
+        studentProject.setModifiedAt(LocalDateTime.now());
 
         //Save changes to repository
-       StudentProject studentProject = studentProjectRepository.save(studentProjectToUpdate);
+       StudentProject studentToReturn = studentProjectRepository.save(studentProject);
+       //Preparing response dto
+       StudentProjectResponseDto responseDto = StudentProjectResponseDto.builder()
+               .imageAddress(studentToReturn.getImageAddress())
+               .projectTitle(studentToReturn.getProjectTitle())
+               .summary(studentToReturn.getSummary())
+               .price(studentToReturn.getPrice())
+               .build();
 
-       ResponsePojo<StudentProject> responsePojo = new ResponsePojo<>();
+       ResponsePojo<StudentProjectResponseDto> responsePojo = new ResponsePojo<>();
        responsePojo.setMessage("Project was updated successfully");
-       responsePojo.setData(studentProject);
+       responsePojo.setData(responseDto);
 
         return responsePojo;
     }
 
     @Override
     public ResponseEntity<?> deleteProject(String serialNumber) {
-        StudentProject studentProject = studentProjectRepository.findBySerialNumber(serialNumber).get();
-
-        if(ObjectUtils.isEmpty(studentProject) || (!studentProject.getActiveStatus()))
-            return new ResponseEntity<>(String.format("Student project with serial number: %s does not exist", serialNumber),
-                    HttpStatus.NOT_FOUND);
+        StudentProject studentProject = studentProjectRepository.findBySerialNumber(serialNumber)
+                .orElseThrow(()->
+                        new ApiException(String.format("Student project with serial number: %s does not exist",
+                                serialNumber)));
 
         //Change the active Status of the book
         studentProject.setActiveStatus(false);

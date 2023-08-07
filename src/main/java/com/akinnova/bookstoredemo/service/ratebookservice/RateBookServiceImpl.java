@@ -36,35 +36,15 @@ public class RateBookServiceImpl implements IRateBookService {
     @Override
     public ResponseEntity<?> rateBook(RateDto rateDto) {
 
-        //To check if book with the title exists in the book database
-        if(!bookEntityRepository.existsByTitle(rateDto.getTitle())){
-            throw new ApiException(String.format("Book with this title: %s does not exist", rateDto.getTitle()));
-        }
-
-        //To check if user/customer is registered in the database
-        if(!customerRepository.existsByUsername(rateDto.getUsername())){
-            throw new ApiException(String.format("User with username: %s does not exist", rateDto.getUsername()));
-        }
-
-        //If user has not reviewed any book prior, create a new review for user
-        if(!rateBookRepository.existsByTitle(rateDto.getTitle())){
-            //new review
-            RateBook rateBook = RateBook.builder()
-                    .title(rateDto.getTitle())
-                    .starRating(ResponseUtils.rateFunction(rateDto.getStarRating()))
-                    .rateCount((long)1)
-                    .averageRating((double)rateDto.getStarRating())
-                    .rateTime(LocalDateTime.now())
-                    .build();
-
-            //To save review to database
-            rateBookRepository.save(rateBook);
-
-            return new ResponseEntity<>("Thanks for your new review.", HttpStatus.ACCEPTED);
-        }
-
         //If user has reviewed a book before, retrieve the exact record and edit
-        RateBook userRate = rateBookRepository.findByTitle(rateDto.getTitle()).get();
+        RateBook userRate = rateBookRepository.findByTitle(rateDto.getTitle())
+                .orElse(rateBookRepository.save(RateBook.builder()
+                        .title(rateDto.getTitle())
+                        .starRating(ResponseUtils.rateFunction(rateDto.getStarRating()))
+                        .rateCount((long)1)
+                        .averageRating((double)rateDto.getStarRating())
+                        .rateTime(LocalDateTime.now())
+                        .build()));
         //obtains the current average rating
         double currentAverage = userRate.getAverageRating();
         //obtains the current rate counts (i.e. number of rates given)
@@ -92,11 +72,9 @@ public class RateBookServiceImpl implements IRateBookService {
         }
 
         //To retrieve all reviews for a book by title
-        RateBook rateBook = rateBookRepository.findByTitle(title).get();
-
-        if(ObjectUtils.isEmpty(rateBook))
-            return new ResponseEntity<>(String.format("There are no reviews for book with this title %s: yet", title),
-                    HttpStatus.NO_CONTENT);
+        RateBook rateBook = rateBookRepository.findByTitle(title)
+                .orElseThrow(()->
+                        new ApiException(String.format("There are no reviews for book with this title %s: yet", title)));
 
         return new ResponseEntity<>(String.format("Rate for book title %s: %f from %d users", title, rateBook.getAverageRating(),
                 rateBook.getRateCount() ), HttpStatus.FOUND);
@@ -110,8 +88,6 @@ public class RateBookServiceImpl implements IRateBookService {
 
         if(rateBookList.isEmpty())
             return new ResponseEntity<>("There are no reviews yet", HttpStatus.NO_CONTENT);
-
-        //return new ResponseEntity<>(rateBookList, HttpStatus.OK);
 
         return ResponseEntity.ok()
                 .header("Review-Page-Number", String.valueOf(pageNum))

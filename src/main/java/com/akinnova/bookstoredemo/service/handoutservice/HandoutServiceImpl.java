@@ -29,15 +29,6 @@ public class HandoutServiceImpl implements IHandOutService {
 
     @Override
     public ResponsePojo<HandOutResponseDto> createHandout(HandOutCreateDto handOutCreateDto) {
-        //Check if book with the same title for an institution, faculty and department exists
-        //Throw an exception if a book with same details already exist
-        handOutRepository.findByCourseCode(handOutCreateDto.getCourseCode())
-                .filter(x-> (x.getSchoolName().equals(handOutCreateDto.getSchoolName()) && (x.getFaculty().equals(handOutCreateDto.getFaculty()))
-                 && (x.getDepartment().equals(handOutCreateDto.getDepartment())) && (x.getLevel().equals(handOutCreateDto.getLevel()))))
-                        .orElseThrow(()-> new ApiException(String.format("Hand-out with course code: %s, already exists for the Institution" +
-                                        ", faculty, department and level. Upload a new book.",
-                        handOutCreateDto.getCourseCode())));
-
 
         //If hand out is not already in the database/repository, create new one.
         HandOut handOut = HandOut.builder()
