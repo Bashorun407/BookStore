@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 @Repository
 public interface HandOutRepository extends JpaRepository<HandOut, Long> {
+    Boolean existsByCourseCode(String courseCode);
     Optional<List<HandOut>> findBySchoolName(String schoolName);
     Optional<List<HandOut>> findByFaculty(String faculty);
     Optional<List<HandOut>> findByDepartment(String department);
