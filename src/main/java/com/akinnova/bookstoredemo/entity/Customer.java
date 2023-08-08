@@ -35,7 +35,7 @@ public class Customer implements Serializable {
     @CreationTimestamp
     private LocalDateTime dateRegistered;
 
-    //One-to-One relationship with role
+    //Many-to-many relationship with role
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "customer_role",
             joinColumns = @JoinColumn(name = "customer", referencedColumnName = "username"),
