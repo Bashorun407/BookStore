@@ -1,6 +1,7 @@
 package com.akinnova.bookstoredemo.controller.cartcontroller;
 
 import com.akinnova.bookstoredemo.dto.cartdto.CartDto;
+import com.akinnova.bookstoredemo.dto.cartdto.CartResponseDto;
 import com.akinnova.bookstoredemo.entity.Cart;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.service.cartservice.CartServiceImpl;
@@ -21,7 +22,7 @@ public class CartController {
 
     //1) Method to add item to cart
     @PostMapping("/addCart")
-    public ResponsePojo<Cart> createCartItem(@RequestBody CartDto cartDto) {
+    public ResponsePojo<CartResponseDto> createCartItem(@RequestBody CartDto cartDto) {
         return cartService.createCartItem(cartDto);
     }
 
@@ -33,7 +34,7 @@ public class CartController {
 
     //3) Method to update Item in cart...This method is similar to CreateCart so, may not be necessary
     @PutMapping("/updateCart")
-    public ResponsePojo<Cart> updateCartItem(@RequestBody CartDto cartDto) {
+    public ResponsePojo<CartResponseDto> updateCartItem(@RequestBody CartDto cartDto) {
         return cartService.updateCartItem(cartDto);
     }
 

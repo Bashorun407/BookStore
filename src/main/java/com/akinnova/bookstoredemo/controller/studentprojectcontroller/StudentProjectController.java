@@ -1,8 +1,8 @@
 package com.akinnova.bookstoredemo.controller.studentprojectcontroller;
 
 import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectCreateDto;
+import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectResponseDto;
 import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectUpdateDto;
-import com.akinnova.bookstoredemo.entity.StudentProject;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.service.studentprojectservice.StudentProjectServiceImpl;
 import lombok.AllArgsConstructor;
@@ -18,7 +18,7 @@ public class StudentProjectController {
     private StudentProjectServiceImpl studentProjectService;
 
     @PostMapping("/create")
-    public ResponsePojo<StudentProject> createProject(@RequestBody StudentProjectCreateDto studentProjectCreateDto) {
+    public ResponsePojo<StudentProjectResponseDto> createProject(@RequestBody StudentProjectCreateDto studentProjectCreateDto) {
         return studentProjectService.createProject(studentProjectCreateDto);
     }
 
@@ -52,7 +52,7 @@ public class StudentProjectController {
     }
 
     @PutMapping("/update")
-    public ResponsePojo<StudentProject> updateProject(@RequestBody StudentProjectUpdateDto studentProjectUpdateDto) {
+    public ResponsePojo<StudentProjectResponseDto> updateProject(@RequestBody StudentProjectUpdateDto studentProjectUpdateDto) {
         return studentProjectService.updateProject(studentProjectUpdateDto);
     }
 

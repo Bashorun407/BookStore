@@ -1,6 +1,9 @@
 package com.akinnova.bookstoredemo.service.handoutservice;
 
+import com.akinnova.bookstoredemo.Exception.ApiException;
 import com.akinnova.bookstoredemo.dto.handoutdto.HandOutCreateDto;
+import com.akinnova.bookstoredemo.dto.handoutdto.HandOutResponseDto;
+import com.akinnova.bookstoredemo.dto.handoutdto.HandOutSearchDto;
 import com.akinnova.bookstoredemo.dto.handoutdto.HandOutUpdateDto;
 import com.akinnova.bookstoredemo.entity.HandOut;
 import com.akinnova.bookstoredemo.repository.HandOutRepository;
@@ -9,12 +12,11 @@ import com.akinnova.bookstoredemo.response.ResponseUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
+
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class HandoutServiceImpl implements IHandOutService {
@@ -26,23 +28,9 @@ public class HandoutServiceImpl implements IHandOutService {
     }
 
     @Override
-    public ResponsePojo<HandOut> createHandout(HandOutCreateDto handOutCreateDto) {
-        //Check if book with the same title for an institution, faculty and department exists
-        Optional<HandOut> handOutOptional = handOutRepository.findByCourseCode(handOutCreateDto.getCourseCode())
-                .filter(x-> (x.getSchoolName() == handOutCreateDto.getSchoolName()) && (x.getFaculty() == handOutCreateDto.getFaculty())
-                 && (x.getDepartment() == handOutCreateDto.getDepartment()) && (x.getLevel() == handOutCreateDto.getLevel()));
+    public ResponsePojo<HandOutResponseDto> createHandout(HandOutCreateDto handOutCreateDto) {
 
-        //If Handout already exists for the institution, faculty, department and level, notify user.
-        if(!handOutOptional.isEmpty()){
-            ResponsePojo<HandOut> responsePojo = new ResponsePojo<>();
-            responsePojo.setStatusCode(ResponseUtils.BAD_REQUEST);
-            responsePojo.setSuccess(false);
-            responsePojo.setMessage(String.format("Hand-out with course code: %s, already exists for the Institution" +
-                    ", faculty, department and level. Upload a new book.", handOutCreateDto.getCourseCode()));
-
-            return responsePojo;
-        }
-
+        //If hand out is not already in the database/repository, create new one.
         HandOut handOut = HandOut.builder()
                 .imageAddress(handOutCreateDto.getImageAddress())
                 .schoolName(handOutCreateDto.getSchoolName())
@@ -62,119 +50,173 @@ public class HandoutServiceImpl implements IHandOutService {
         //Save to repository
         HandOut handOutToReturn = handOutRepository.save(handOut);
 
-        ResponsePojo<HandOut> responsePojo = new ResponsePojo<>();
+        HandOutResponseDto responseDto = HandOutResponseDto.builder()
+                .imageAddress(handOutToReturn.getImageAddress())
+                .courseCode(handOutToReturn.getCourseCode())
+                .courseTitle(handOutToReturn.getCourseTitle())
+                .summary(handOutToReturn.getSummary())
+                .build();
+
+
+
+        ResponsePojo<HandOutResponseDto> responsePojo = new ResponsePojo<>();
         responsePojo.setMessage("Successfully created");
-        responsePojo.setData(handOutToReturn);
+        responsePojo.setData(responseDto);
 
         return responsePojo;
     }
 
     @Override
-    public ResponseEntity<?> findHandOutBySchool(String schoolName, int pageNum, int pageSize) {
+    public ResponseEntity<List<HandOutResponseDto>> findHandOutBySchool(String schoolName, int pageNum, int pageSize) {
 
-        List<HandOut> handOutList = handOutRepository.findBySchoolName(schoolName).get()
-                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).toList();
+        List<HandOut> handOutList = handOutRepository.findBySchoolName(schoolName)
+                .orElseThrow(()->
+                        new ApiException(String.format("Hand-outs with this school: %s, are not available yet", schoolName)));
+        List<HandOutResponseDto> responseDtoList = new ArrayList<>();
 
-        if(handOutList.isEmpty())
-            return new ResponseEntity<>(String.format("Hand-outs with this school name: %s, are not available yet",
-                    schoolName), HttpStatus.NOT_FOUND);
+        //Preparing objects that will be returned back to the user; book has to be active and from the department specified
+        handOutList.stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(Boolean.TRUE))
+                .map(
+                        handOut -> HandOutResponseDto.builder()
+                                .imageAddress(handOut.getImageAddress())
+                                .courseCode(handOut.getCourseCode())
+                                .courseTitle(handOut.getCourseTitle())
+                                .level(handOut.getLevel())
+                                .summary(handOut.getSummary())
+                                .build()
+                ).forEach(responseDtoList::add);
 
         //return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
         return ResponseEntity.ok()
                 .header("Handout-Page-Number", String.valueOf(pageNum))
                 .header("Handout-Page-Size", String.valueOf(pageSize))
-                .header("Handout-Total-Count", String.valueOf(handOutList.size()))
-                .body(handOutList);
+                .header("Handout-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
     }
 
     @Override
     public ResponseEntity<?> findHandOutByFaculty(String faculty, int pageNum, int pageSize) {
-        List<HandOut> handOutList = handOutRepository.findByFaculty(faculty).get()
-                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+        List<HandOut> handOutList = handOutRepository.findByFaculty(faculty)
+                .orElseThrow(()->
+                        new ApiException(String.format("Hand-outs with this faculty: %s, are not available yet", faculty)));
+        List<HandOutResponseDto> responseDtoList = new ArrayList<>();
 
-        if(handOutList.isEmpty())
-            return new ResponseEntity<>(String.format("Hand-outs with faculty: %s, are not available yet",
-                    faculty), HttpStatus.NOT_FOUND);
-
-        //return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
-        return ResponseEntity.ok()
-                .header("Handout-Page-Number", String.valueOf(pageNum))
-                .header("Handout-Page-Size", String.valueOf(pageSize))
-                .header("Handout-Total-Count", String.valueOf(handOutList.size()))
-                .body(handOutList);
-    }
-
-    @Override
-    public ResponseEntity<?> findHandOutByDepartment(String department, int pageNum, int pageSize) {
-        List<HandOut> handOutList = handOutRepository.findByDepartment(department).get()
-                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
-
-        if(handOutList.isEmpty())
-            return new ResponseEntity<>(String.format("Hand-outs with this department: %s, are not available yet",
-                    department), HttpStatus.NOT_FOUND);
+        //Preparing objects that will be returned back to the user; book has to be active and from the department specified
+        handOutList.stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(Boolean.TRUE))
+                .map(
+                        handOut -> HandOutResponseDto.builder()
+                                .imageAddress(handOut.getImageAddress())
+                                .courseCode(handOut.getCourseCode())
+                                .courseTitle(handOut.getCourseTitle())
+                                .level(handOut.getLevel())
+                                .summary(handOut.getSummary())
+                                .build()
+                ).forEach(responseDtoList::add);
 
         //return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
         return ResponseEntity.ok()
                 .header("Handout-Page-Number", String.valueOf(pageNum))
                 .header("Handout-Page-Size", String.valueOf(pageSize))
-                .header("Handout-Total-Count", String.valueOf(handOutList.size()))
-                .body(handOutList);
+                .header("Handout-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
     }
 
     @Override
-    public ResponseEntity<?> findHandOutBylevel(int level, int pageNum, int pageSize) {
-        List<HandOut> handOutList = handOutRepository.findByLevel(level).get()
-                .stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+    public ResponseEntity<List<HandOutResponseDto>> findHandOutByDepartment(String department, int pageNum, int pageSize) {
+        List<HandOut> handOutList = handOutRepository.findByDepartment(department)
+                .orElseThrow(()->
+                        new ApiException(String.format("Hand-outs with this department: %s, are not available yet", department)));
+        List<HandOutResponseDto> responseDtoList = new ArrayList<>();
 
-        if(handOutList.isEmpty())
-            return new ResponseEntity<>(String.format("Hand-outs with this level: %d, are not available yet",
-                    level), HttpStatus.NOT_FOUND);
+        //Preparing objects that will be returned back to the user; book has to be active and from the department specified
+        handOutList.stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(Boolean.TRUE))
+                .map(
+                        handOut -> HandOutResponseDto.builder()
+                                .imageAddress(handOut.getImageAddress())
+                                .courseCode(handOut.getCourseCode())
+                                .courseTitle(handOut.getCourseTitle())
+                                .level(handOut.getLevel())
+                                .summary(handOut.getSummary())
+                                .build()
+                ).forEach(responseDtoList::add);
 
         //return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
         return ResponseEntity.ok()
                 .header("Handout-Page-Number", String.valueOf(pageNum))
                 .header("Handout-Page-Size", String.valueOf(pageSize))
-                .header("Handout-Total-Count", String.valueOf(handOutList.size()))
-                .body(handOutList);
+                .header("Handout-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
     }
 
     @Override
-    public ResponseEntity<?> findHandOutByCourseCode(String courseCode) {
-        HandOut handOut = handOutRepository.findByCourseCode(courseCode).get();
+    public ResponseEntity<?> findHandOutByLevel(HandOutSearchDto searchDto, int pageNum, int pageSize) {
+        List<HandOut> handOutList = handOutRepository.findByLevel(searchDto.getLevel())
+                .orElseThrow(()->
+                        new ApiException(String.format("Hand-outs with this department: %d, are not available yet",
+                                searchDto.getLevel())));
+        List<HandOutResponseDto> responseDtoList = new ArrayList<>();
 
-        if(ObjectUtils.isEmpty(handOut) || (!handOut.getActiveStatus()))
-            return new ResponseEntity<>(String.format("Hand out with this school name: %s, does not exist yet",
-                    courseCode), HttpStatus.NOT_FOUND);
+        //Preparing objects that will be returned back to the user; book has to be active and from the department specified
+        handOutList.stream().skip(pageNum - 1).limit(pageSize).filter(x-> x.getActiveStatus().equals(Boolean.TRUE)
+                        && x.getSchoolName().equals(searchDto.getSchoolName()))
+                .map(
+                        handOut -> HandOutResponseDto.builder()
+                                .imageAddress(handOut.getImageAddress())
+                                .courseCode(handOut.getCourseCode())
+                                .courseTitle(handOut.getCourseTitle())
+                                .level(handOut.getLevel())
+                                .summary(handOut.getSummary())
+                                .build()
+                ).forEach(responseDtoList::add);
+
+        //return new ResponseEntity<>(handOutList, HttpStatus.FOUND);
+        return ResponseEntity.ok()
+                .header("Handout-Page-Number", String.valueOf(pageNum))
+                .header("Handout-Page-Size", String.valueOf(pageSize))
+                .header("Handout-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
+    }
+
+    @Override
+    public ResponseEntity<?> findHandOutByCourseCode(HandOutSearchDto searchDto) {
+        HandOut handOut = handOutRepository.findByCourseCode(searchDto.getCourseCode())
+                .filter(x-> x.getSchoolName().equals(searchDto.getSchoolName()) && x.getActiveStatus().equals(Boolean.TRUE))
+           .orElseThrow(()->
+                new ApiException(String.format("Hand-outs with this department: %s, are not available yet",
+                        searchDto.getCourseCode())));
+
+        //Preparing objects that will be returned back to the user; book has to be active and from the department specified
+        HandOutResponseDto responseDto = HandOutResponseDto.builder()
+                .imageAddress(handOut.getImageAddress())
+                .courseCode(handOut.getCourseCode())
+                .courseTitle(handOut.getCourseTitle())
+                .level(handOut.getLevel())
+                .summary(handOut.getSummary())
+                .build();
+
+                return ResponseEntity.ok(responseDto);
+    }
+
+    @Override
+    public ResponseEntity<?> findHandOutByCourseTitle(HandOutSearchDto searchDto) {
+
+        HandOut handOut = handOutRepository.findByCourseCode(searchDto.getCourseTitle())
+                .orElseThrow(()-> new ApiException(String.format("Hand out with this course title: %s, is not available",
+                        searchDto.getCourseTitle())));
+
 
         return new ResponseEntity<>(handOut, HttpStatus.FOUND);
     }
 
     @Override
-    public ResponseEntity<?> findHandOutByCourseTitle(String courseTitle) {
+    public ResponsePojo<HandOutResponseDto> updateHandOut(HandOutUpdateDto handOutUpdateDto) {
+        HandOut handOutUpdate = handOutRepository.findByCourseCode(handOutUpdateDto.getCourseCode())
+                .filter(x -> x.getActiveStatus().equals(Boolean.TRUE)
+                        && x.getSchoolName().equals(handOutUpdateDto.getSchoolName()))
+                .orElseThrow(()-> new ApiException(String.format("Hand-out with course code: %s, does not exist",
+                        handOutUpdateDto.getCourseCode())));
 
-        HandOut handOut = handOutRepository.findByCourseCode(courseTitle).get();
-
-        if(ObjectUtils.isEmpty(handOut) || (!handOut.getActiveStatus()))
-            return new ResponseEntity<>(String.format("Hand out with this course title: %s, is not available",
-                    courseTitle), HttpStatus.NOT_FOUND);
-
-        return new ResponseEntity<>(handOut, HttpStatus.FOUND);
-    }
-
-    @Override
-    public ResponsePojo<HandOut> updateHandOut(HandOutUpdateDto handOutUpdateDto) {
-        Optional<HandOut> handOut = handOutRepository.findByCourseCode(handOutUpdateDto.getCourseCode())
-                .filter(x -> x.getActiveStatus().equals(true));
-
-        if(handOut.isEmpty()){
-            ResponsePojo<HandOut> responsePojo = new ResponsePojo<>();
-            responsePojo.setStatusCode(ResponseUtils.NOT_FOUND);
-            responsePojo.setSuccess(false);
-            responsePojo.setMessage(String.format("Hand-out with course code: %s, does not exist", handOutUpdateDto.getCourseCode()));
-            return responsePojo;
-        }
-
-        HandOut handOutUpdate = handOut.get();
+        //Update handout
         handOutUpdate.setImageAddress(handOutUpdateDto.getImageAddress());
         handOutUpdate.setSchoolName(handOutUpdateDto.getSchoolName());
         handOutUpdate.setFaculty(handOutUpdateDto.getFaculty());
@@ -187,26 +229,33 @@ public class HandoutServiceImpl implements IHandOutService {
         handOutUpdate.setActiveStatus(true);
         handOutUpdate.setModifiedAt(LocalDateTime.now());
 
-        //Save to repository
+        //Save changes to repository
         handOutRepository.save(handOutUpdate);
 
+        HandOutResponseDto responseDto = HandOutResponseDto.builder()
+                .imageAddress(handOutUpdate.getImageAddress())
+                .courseCode(handOutUpdate.getCourseCode())
+                .courseTitle(handOutUpdate.getCourseTitle())
+                .level(handOutUpdate.getLevel())
+                .summary(handOutUpdate.getSummary())
+                .build();
+
         //Response POJO to return
-        ResponsePojo<HandOut> responsePojo = new ResponsePojo<>();
+        ResponsePojo<HandOutResponseDto> responsePojo = new ResponsePojo<>();
         responsePojo.setMessage(String.format("Hand-out with course code: %s has been updated successfully",
                 handOutUpdateDto.getCourseCode()));
-        responsePojo.setData(handOutUpdate);
+        responsePojo.setData(responseDto);
 
         return responsePojo;
     }
 
     @Override
-    public ResponseEntity<?> deleteHandOut(String serialNumber) {
+    public ResponseEntity<?> deleteHandOut(HandOutSearchDto searchDto) {
 
-        HandOut handOut = handOutRepository.findBySerialNumber(serialNumber).get();
-
-        if(ObjectUtils.isEmpty(handOut) || (!handOut.getActiveStatus()))
-            return new ResponseEntity<>(String.format("Hand-out with serial number: %s does not exist", serialNumber),
-                    HttpStatus.NOT_FOUND);
+        HandOut handOut = handOutRepository.findByCourseCode(searchDto.getCourseCode())
+                .filter(x-> x.getSchoolName().equals(searchDto.getSchoolName()) && x.getActiveStatus().equals(Boolean.TRUE))
+                .orElseThrow(()-> new ApiException(String.format("There are no hand-out with course: %s does not exist",
+                        searchDto.getCourseCode())));
 
         //Change the active Status of the book
         handOut.setActiveStatus(false);

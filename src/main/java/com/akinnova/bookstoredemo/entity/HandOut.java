@@ -28,7 +28,7 @@ public class  HandOut {
     private String schoolName;
     private String faculty;
     private String department;
-    private int level;
+    private Integer level;
     private String courseCode;
     private String courseTitle;
     private String summary;

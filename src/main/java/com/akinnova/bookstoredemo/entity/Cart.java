@@ -27,7 +27,7 @@ public class Cart {
     private Double price;
     private Integer quantity;
     private Double amountToPay;
-    private Boolean checkOut = false;
+    private Boolean checkOut;
     @CreationTimestamp
     private LocalDateTime timeCheckedIn;
 }

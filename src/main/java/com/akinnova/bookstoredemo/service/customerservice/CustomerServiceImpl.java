@@ -2,6 +2,7 @@ package com.akinnova.bookstoredemo.service.customerservice;
 
 import com.akinnova.bookstoredemo.Exception.ApiException;
 import com.akinnova.bookstoredemo.dto.customerdto.CustomerDto;
+import com.akinnova.bookstoredemo.dto.customerdto.CustomerResponseDto;
 import com.akinnova.bookstoredemo.dto.logindto.LoginDto;
 import com.akinnova.bookstoredemo.dto.customerdto.CustomerUpdateDto;
 import com.akinnova.bookstoredemo.email.emailDto.EmailDetail;
@@ -34,6 +35,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -61,7 +63,7 @@ public class CustomerServiceImpl implements ICustomerService {
     }
 
     //1) Method to create customer
-    public ResponsePojo<Customer> createCustomer(CustomerDto customerDto){
+    public ResponsePojo<CustomerResponseDto> createCustomer(CustomerDto customerDto){
         //check if Customer exists
         if(customerRepository.existsByUsername(customerDto.getUsername())){
             throw new ApiException("User with the username or email already exists");
@@ -80,6 +82,11 @@ public class CustomerServiceImpl implements ICustomerService {
 
         //To save data to customer repository
        Customer savedCustomer =  customerRepository.save(customer);
+       CustomerResponseDto responseDto = CustomerResponseDto.builder()
+               .imageAddress(savedCustomer.getImageAddress())
+               .firstName(savedCustomer.getFirstName())
+               .lastName(savedCustomer.getLastName())
+               .build();
 
         //To save roles in the roles database
         Roles roles = Roles.builder()
@@ -101,10 +108,10 @@ public class CustomerServiceImpl implements ICustomerService {
         emailService.sendSimpleEmail(emailDetail);
 
         // TODO: 6/27/2023 (Here, a mail should be sent to user for confirmation)
-        ResponsePojo<Customer> responsePojo = new ResponsePojo<>();
+        ResponsePojo<CustomerResponseDto> responsePojo = new ResponsePojo<>();
         responsePojo.setStatusCode(ResponseUtils.CREATED);
         responsePojo.setMessage(String.format(ResponseUtils.CREATED_MESSAGE, customerDto.getUsername()));
-        responsePojo.setData(customer);
+        responsePojo.setData(responseDto);
         return responsePojo;
     }
 
@@ -121,54 +128,61 @@ public class CustomerServiceImpl implements ICustomerService {
     //3) Method to find customer by username
     @Override
     public ResponseEntity<?> findCustomerByUsername(String username) {
-        Customer customer = customerRepository.findByUsername(username).get();
+        Customer customer = customerRepository.findByUsername(username)
+                .orElseThrow(()-> new ApiException(String.format("Customer with username: %s does not exist", username)));
+        CustomerResponseDto responseDto = CustomerResponseDto.builder()
+                .imageAddress(customer.getImageAddress())
+                .firstName(customer.getFirstName())
+                .lastName(customer.getLastName())
+                .build();
 
-        if(ObjectUtils.isEmpty(customer))
-            return new ResponseEntity<>(String.format("Customer with username: %s does not exist", username),
-                    HttpStatus.NOT_FOUND);
-
-     return new ResponseEntity<>(customer, HttpStatus.FOUND);
+     return new ResponseEntity<>(responseDto, HttpStatus.FOUND);
     }
 
     //4) Method to find customer by email
     @Override
     public ResponseEntity<?> findCustomerByEmail(String email) {
-        Customer customer = customerRepository.findByEmail(email).get();
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(()-> new ApiException(String.format("Customer with email: %s does not exist", email)));
+        CustomerResponseDto responseDto = CustomerResponseDto.builder()
+                .imageAddress(customer.getImageAddress())
+                .firstName(customer.getFirstName())
+                .lastName(customer.getLastName())
+                .build();
 
-        if(ObjectUtils.isEmpty(customer))
-            return new ResponseEntity<>(String.format("Customer with email: %s does not exist", email),
-                    HttpStatus.NOT_FOUND);
-
-        return new ResponseEntity<>(customer, HttpStatus.FOUND);
+        return ResponseEntity.ok(responseDto);
     }
 
     //5) Method to find all customers
     @Override
     public ResponseEntity<?> findAllCustomers(int pageNum, int pageSize) {
-        List<Customer> customerList = customerRepository.findAll().stream().skip(pageNum - 1).limit(pageSize)
-                .collect(Collectors.toList());
-
+        List<Customer> customerList = customerRepository.findAll();
         if(customerList.isEmpty())
             return new ResponseEntity<>("Customer with email: %s does not exist",
                     HttpStatus.NOT_FOUND);
+        List<CustomerResponseDto> responseDtoList = new ArrayList<>();
 
+        customerList.stream().skip(pageNum - 1).limit(pageSize)
+                .map(
+                        customer -> CustomerResponseDto.builder()
+                                .imageAddress(customer.getImageAddress())
+                                .firstName(customer.getFirstName())
+                                .lastName(customer.getLastName())
+                                .build()
+                ).forEach(responseDtoList::add);
     //return new ResponseEntity<>(customerList, HttpStatus.FOUND);
         return ResponseEntity.ok()
                 .header("Customer-Page-Number", String.valueOf(pageNum))
                 .header("Customer-Page-Size", String.valueOf(pageSize))
-                .header("Customer-Total-Count", String.valueOf(customerList.size()))
-                .body(customerList);
+                .header("Customer-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
     }
 
     //6) Method to Update Customer password....email
-    public ResponsePojo<Customer> updateCustomer(CustomerUpdateDto updateCustomerDto) {
+    public ResponsePojo<CustomerResponseDto> updateCustomer(CustomerUpdateDto updateCustomerDto) {
         //Verify user detail
-        Optional<Customer> customerOptional = customerRepository.findByEmail(updateCustomerDto.getEmail());
-        //If customer is not available, throw an exception
-        customerOptional.orElseThrow(()-> new ApiException("Customer with the email not found"));
-
-        //A temporary container to hold fetched customer
-       Customer customerToUpdate = customerOptional.get();
+        Customer customerToUpdate = customerRepository.findByEmail(updateCustomerDto.getEmail())
+                .orElseThrow(()-> new ApiException("Customer with the email not found"));
 
        //Updating fetched customer
          customerToUpdate.setImageAddress(updateCustomerDto.getImageAddress());
@@ -179,6 +193,12 @@ public class CustomerServiceImpl implements ICustomerService {
 
         //Saving updated customer details to customer repository
        Customer savedCustomer = customerRepository.save(customerToUpdate);
+
+        CustomerResponseDto customerResponseDto = CustomerResponseDto.builder()
+                .imageAddress(savedCustomer.getImageAddress())
+                .firstName(savedCustomer.getFirstName())
+                .lastName(savedCustomer.getLastName())
+                .build();
 
         //Body of email to send to user's mail
         EmailDetail emailDetail = EmailDetail.builder()
@@ -191,10 +211,10 @@ public class CustomerServiceImpl implements ICustomerService {
         //Sending mail to user
         emailService.sendSimpleEmail(emailDetail);
 
-        ResponsePojo<Customer> responsePojo = new ResponsePojo<>();
+        ResponsePojo<CustomerResponseDto> responsePojo = new ResponsePojo<>();
         responsePojo.setStatusCode(ResponseUtils.OK);
         responsePojo.setMessage(String.format("Customer with email %s has been updated", updateCustomerDto.getEmail()));
-        responsePojo.setData(customerToUpdate);
+        responsePojo.setData(customerResponseDto);
         return responsePojo;
     }
 

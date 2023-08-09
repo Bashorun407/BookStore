@@ -4,6 +4,8 @@ import com.akinnova.bookstoredemo.Exception.ApiException;
 import com.akinnova.bookstoredemo.email.emailDto.EmailDetail;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -16,6 +18,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+@AllArgsConstructor
 @Service
 public class EmailService implements IEmailService{
     @Autowired

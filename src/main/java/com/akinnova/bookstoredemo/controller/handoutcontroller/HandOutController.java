@@ -1,6 +1,8 @@
 package com.akinnova.bookstoredemo.controller.handoutcontroller;
 
 import com.akinnova.bookstoredemo.dto.handoutdto.HandOutCreateDto;
+import com.akinnova.bookstoredemo.dto.handoutdto.HandOutResponseDto;
+import com.akinnova.bookstoredemo.dto.handoutdto.HandOutSearchDto;
 import com.akinnova.bookstoredemo.dto.handoutdto.HandOutUpdateDto;
 import com.akinnova.bookstoredemo.entity.HandOut;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
@@ -18,7 +20,7 @@ public class HandOutController {
     private HandoutServiceImpl handoutService;
 
     @PostMapping("/create")
-    public ResponsePojo<HandOut> createHandout(@RequestBody HandOutCreateDto handOutCreateDto) {
+    public ResponsePojo<HandOutResponseDto> createHandout(@RequestBody HandOutCreateDto handOutCreateDto) {
         return handoutService.createHandout(handOutCreateDto);
     }
 
@@ -40,29 +42,29 @@ public class HandOutController {
         return handoutService.findHandOutByDepartment(department, pageNum, pageSize);
     }
 
-    @GetMapping("/level/{level}")
-    public ResponseEntity<?> findHandOutBylevel(@PathVariable int level, @RequestParam(defaultValue = "1") int pageNum,
+    @GetMapping("/level")
+    public ResponseEntity<?> findHandOutByLevel(@RequestBody HandOutSearchDto searchDto, @RequestParam(defaultValue = "1") int pageNum,
                                                 @RequestParam(defaultValue = "10") int pageSize) {
-        return handoutService.findHandOutBylevel(level, pageNum, pageSize);
+        return handoutService.findHandOutByLevel(searchDto, pageNum, pageSize);
     }
 
-    @GetMapping("/courseCode/{courseCode}")
-    public ResponseEntity<?> findHandOutByCourseCode(@PathVariable String courseCode) {
-        return handoutService.findHandOutByCourseCode(courseCode);
+    @GetMapping("/courseCode")
+    public ResponseEntity<?> findHandOutByCourseCode(@RequestBody HandOutSearchDto searchDto) {
+        return handoutService.findHandOutByCourseCode(searchDto);
     }
 
-    @GetMapping("/courseTitle/{courseTitle}")
-    public ResponseEntity<?> findHandOutByCourseTitle(@PathVariable String courseTitle) {
-        return handoutService.findHandOutByCourseTitle(courseTitle);
+    @GetMapping("/courseTitle")
+    public ResponseEntity<?> findHandOutByCourseTitle(@RequestBody HandOutSearchDto searchDto) {
+        return handoutService.findHandOutByCourseTitle(searchDto);
     }
 
     @PutMapping("/update")
-    public ResponsePojo<HandOut> updateHandOut(@RequestBody HandOutUpdateDto handOutUpdateDto) {
+    public ResponsePojo<HandOutResponseDto> updateHandOut(@RequestBody HandOutUpdateDto handOutUpdateDto) {
         return handoutService.updateHandOut(handOutUpdateDto);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteHandOut(String serialNumber) {
-        return handoutService.deleteHandOut(serialNumber);
+    public ResponseEntity<?> deleteHandOut(HandOutSearchDto searchDto) {
+        return handoutService.deleteHandOut(searchDto);
     }
 }

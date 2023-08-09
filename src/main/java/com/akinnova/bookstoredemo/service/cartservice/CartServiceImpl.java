@@ -3,6 +3,7 @@ package com.akinnova.bookstoredemo.service.cartservice;
 import com.akinnova.bookstoredemo.Exception.ApiException;
 
 import com.akinnova.bookstoredemo.dto.cartdto.CartDto;
+import com.akinnova.bookstoredemo.dto.cartdto.CartResponseDto;
 import com.akinnova.bookstoredemo.entity.BookEntity;
 import com.akinnova.bookstoredemo.entity.Cart;
 import com.akinnova.bookstoredemo.entity.Customer;
@@ -49,25 +50,15 @@ public class CartServiceImpl implements ICartService {
     }
 
     //1) Method to add item to cart
-    public ResponsePojo<Cart> createCartItem(CartDto cartDto) {
-        //Cart List to collect all books
-        //Fetching book entity
-        Optional<BookEntity> bookOptional =  bookEntityRepository.findBookByTitle(cartDto.getTitle());
-        bookOptional.orElseThrow(()->
-                new ApiException(String.format("Book with the title: %s does not exist.", cartDto.getTitle())));
+    public ResponsePojo<CartResponseDto> createCartItem(CartDto cartDto) {
 
-        BookEntity bookEntity = bookOptional.get();
-
-        //Fetching customer detail
-        Optional<Customer> customerOptional = customerRepository.findByUsername(cartDto.getUsername());
-        customerOptional.orElseThrow(()->
-                new ApiException(String.format("Customer with username: %s does not exist.", cartDto.getUsername())));
-
-        Customer customer = customerOptional.get();
         //if it exists, extract needed details into cartDto object
+        BookEntity bookEntity = bookEntityRepository.findBookByTitle(cartDto.getTitle())
+                .orElseThrow(()-> new ApiException(String.format("Book with the title: %s does not exist.", cartDto.getTitle())));
+
         Cart cart = Cart.builder()
                 .imageAddress(bookEntity.getImageAddress())
-                .username(customer.getUsername())
+                .username(cartDto.getUsername())
                 .title(cartDto.getTitle())
                 .serialNumber(bookEntity.getSerialNumber())
                 .cartItemNumber(ResponseUtils.generateUniqueIdentifier(5, cartDto.getUsername()))
@@ -81,10 +72,19 @@ public class CartServiceImpl implements ICartService {
         //Save data to repository
         Cart addedCart = cartRepository.save(cart);
 
-        ResponsePojo<Cart> responsePojo = new ResponsePojo<>();
+        CartResponseDto responseDto = CartResponseDto.builder()
+                .imageAddress(addedCart.getImageAddress())
+                .title(addedCart.getTitle())
+                .cartItemNumber(addedCart.getCartItemNumber())
+                .price(addedCart.getPrice())
+                .quantity(addedCart.getQuantity())
+                .checkOut(addedCart.getCheckOut())
+                .build();
+
+        ResponsePojo<CartResponseDto> responsePojo = new ResponsePojo<>();
         responsePojo.setStatusCode(ResponseUtils.CREATED);
         responsePojo.setMessage("Added to cart");
-        responsePojo.setData(addedCart);
+        responsePojo.setData(responseDto);
 
         return responsePojo;
     }
@@ -106,34 +106,41 @@ public class CartServiceImpl implements ICartService {
 
 
 //3) Method to update Item in cart...This method is similar to CreateCart; so, may not be necessary
-    public ResponsePojo<Cart> updateCartItem(CartDto cartDto) {
+    public ResponsePojo<CartResponseDto> updateCartItem(CartDto cartDto) {
         //Fetching book entity
-        Optional<BookEntity> bookOptional =  bookEntityRepository.findBookByTitle(cartDto.getTitle());
-        bookOptional.orElseThrow(()->
-                new ApiException(String.format("Book with the title: %s does not exist.", cartDto.getTitle())));
-
-        BookEntity bookEntity = bookOptional.get();
+        BookEntity bookEntity =  bookEntityRepository.findBookByTitle(cartDto.getTitle())
+                .orElseThrow(()-> new ApiException(String.format("Book with the title: %s does not exist.",
+                        cartDto.getTitle())));
 
         //To retrieve the item to update from the database
-        Optional<Cart> itemOptional = cartRepository.findByTitle(cartDto.getTitle());
-        itemOptional.orElseThrow(()-> new ApiException(String.format("Book with this title does not exist in the cart.")));
+        Cart cartItem = cartRepository.findByTitle(cartDto.getTitle())
+                .orElseThrow(()-> new ApiException(String.format("Book with this title: %s does not exist in the cart.",
+                        cartDto.getTitle())));
 
-        Cart itemToUpdate = itemOptional.get();
 
         //Updating the contents of the itemToUpdate
-        itemToUpdate.setTitle(cartDto.getTitle());
-        itemToUpdate.setSerialNumber(bookEntity.getSerialNumber());
-        itemToUpdate.setPrice(bookEntity.getPrice());
-        itemToUpdate.setQuantity(1);
-        itemToUpdate.setAmountToPay(bookEntity.getPrice());
+        cartItem.setTitle(cartDto.getTitle());
+        cartItem.setSerialNumber(bookEntity.getSerialNumber());
+        cartItem.setPrice(bookEntity.getPrice());
+        cartItem.setQuantity(1);
+        cartItem.setAmountToPay(bookEntity.getPrice());
 
         //Saving updated contents to cart database
-        Cart savedCart = cartRepository.save(itemToUpdate);
+        Cart savedCart = cartRepository.save(cartItem);
+        CartResponseDto responseDto = CartResponseDto.builder()
+                .imageAddress(savedCart.getImageAddress())
+                .title(savedCart.getTitle())
+                .cartItemNumber(savedCart.getCartItemNumber())
+                .price(savedCart.getPrice())
+                .quantity(savedCart.getQuantity())
+                .checkOut(savedCart.getCheckOut())
+                .build();
 
-        ResponsePojo<Cart> responsePojo = new ResponsePojo<>();
+        ResponsePojo<CartResponseDto> responsePojo = new ResponsePojo<>();
         responsePojo.setStatusCode(ResponseUtils.ACCEPTED);
         responsePojo.setMessage(ResponseUtils.REQUEST_ACCEPTED);
-        responsePojo.setData(savedCart);
+        responsePojo.setData(responseDto);
+
         return responsePojo;
     }
 
