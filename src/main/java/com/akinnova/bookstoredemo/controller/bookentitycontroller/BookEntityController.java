@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/v1/bookstore")
+@RequestMapping("/swagger-ui/index.html/api/v1/bookstore")
 public class BookEntityController {
 
     @Autowired
