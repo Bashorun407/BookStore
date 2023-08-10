@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize->
-                        authorize.regexMatchers(HttpMethod.POST, "/swagger-ui/index.html/api/v1/bookstore/auth/(.*)").permitAll()
+                        authorize.regexMatchers(HttpMethod.POST, "/api/v1/bookstore/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.GET, "/api/v1/bookstore/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.PUT, "/api/v1/bookstore/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.DELETE, "/api/v1/bookstore/auth/(.*)").permitAll()
