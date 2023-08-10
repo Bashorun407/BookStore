@@ -11,3 +11,4 @@ public interface ITransactionService {
     ResponseEntity<?> transactionByInvoiceCode(String transactionCode);
     ResponseEntity<?> searchTransaction(String username, String invoiceCode, Pageable pageable);
 }
+
