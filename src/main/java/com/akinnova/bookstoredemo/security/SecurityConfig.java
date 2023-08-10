@@ -68,8 +68,8 @@ public class SecurityConfig {
                                 .regexMatchers(HttpMethod.POST, "/api/v1/transaction/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.GET, "/api/v1/transaction/auth/(.*)").permitAll()
                                 .regexMatchers(HttpMethod.POST, "/api/v1/email/auth/(.*)").permitAll()
-                                .regexMatchers(HttpMethod.GET, "/swagger-ui/index.html/(.*)").permitAll()
-
+                                .regexMatchers(HttpMethod.GET, "http://localhost:8080/swagger-ui/index.html").permitAll()
+                                //.antMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 ).httpBasic(Customizer.withDefaults());
 

@@ -24,6 +24,7 @@ public class AdminEntity {
     private String imageAddress;
     private String firstName;
     private String lastName;
+    private String role;
     private String username;
     private String email;
     private String password;

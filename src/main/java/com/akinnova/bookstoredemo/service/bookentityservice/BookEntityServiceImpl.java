@@ -13,7 +13,6 @@ import com.akinnova.bookstoredemo.response.ResponseUtils;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -26,16 +25,16 @@ import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class BookEntityServiceImpl implements IBookEntityService {
-    @Autowired
-    private EntityManager entityManager;
+
+    private final EntityManager entityManager;
     private final BookEntityRepository bookStoreRepository;
 
     //Class Constructor
-    public BookEntityServiceImpl(BookEntityRepository bookStoreRepository) {
+    public BookEntityServiceImpl(EntityManager entityManager, BookEntityRepository bookStoreRepository) {
+        this.entityManager = entityManager;
         this.bookStoreRepository = bookStoreRepository;
     }
 
@@ -81,12 +80,13 @@ public class BookEntityServiceImpl implements IBookEntityService {
 
         List<BookResponseDto> responseDtoList = new ArrayList<>();
 
-        //Returning dtos
+        //Returning dto
         allBooks.stream().map(
                 bookEntity -> BookResponseDto.builder()
                         .imageAddress(bookEntity.getImageAddress())
                         .title(bookEntity.getTitle())
                         .author(bookEntity.getAuthor())
+                        .summary(bookEntity.getSummary())
                         .price(bookEntity.getPrice())
                         .build()
         ).forEach(responseDtoList::add);
@@ -108,7 +108,7 @@ public class BookEntityServiceImpl implements IBookEntityService {
     //3) Methods to find books based on different parameters
     //defining some methods to query the repository
     public ResponseEntity<?> findBookByAuthor(String author, int pageNum, int pageSize){
-;
+
         List<BookEntity> bookEntityList = bookStoreRepository.findBookByAuthor(author)
                 .orElseThrow(()-> new ApiException(String.format("Books by author: %s not found", author)));
         List<BookResponseDto> responseDtoList = new ArrayList<>();
@@ -120,6 +120,7 @@ public class BookEntityServiceImpl implements IBookEntityService {
                                 .imageAddress(bookEntity.getImageAddress())
                                 .title(bookEntity.getTitle())
                                 .author(bookEntity.getAuthor())
+                                .summary(bookEntity.getSummary())
                                 .price(bookEntity.getPrice())
                                 .build()
                 ).forEach(responseDtoList::add);
@@ -140,6 +141,7 @@ public class BookEntityServiceImpl implements IBookEntityService {
                    .imageAddress(bookEntity.getImageAddress())
                    .title(bookEntity.getTitle())
                    .author(bookEntity.getAuthor())
+                   .summary(bookEntity.getSummary())
                    .price(bookEntity.getPrice())
                    .build();
 
@@ -159,6 +161,7 @@ public class BookEntityServiceImpl implements IBookEntityService {
                                 .imageAddress(bookEntity.getImageAddress())
                                 .title(bookEntity.getTitle())
                                 .author(bookEntity.getAuthor())
+                                .summary(bookEntity.getSummary())
                                 .price(bookEntity.getPrice())
                                 .build()
                 ).forEach(responseDtoList::add);
@@ -174,16 +177,19 @@ public class BookEntityServiceImpl implements IBookEntityService {
     //6) Method to find book by serial number
     public ResponseEntity<?> findBookBySerialNumber(String serialNumber){
         //Retrieve only books that are active
-        Optional<BookEntity> book = bookStoreRepository.findBookBySerialNumber(serialNumber)
-                .filter(x-> x.getDeleteStatus().equals(false));
+        BookEntity book = bookStoreRepository.findBookBySerialNumber(serialNumber)
+                .filter(x-> x.getDeleteStatus().equals(false))
+                .orElseThrow(()-> new ApiException(String.format("Book by serial number: %s not available", serialNumber)));
 
-        //If books is null
-        if (book.isEmpty()){
-         return new ResponseEntity<>(String.format("Book by serial number: %s not found", serialNumber),
-                 HttpStatus.NOT_FOUND);
-        }
+        //Response dto
+        BookResponseDto responseDto = BookResponseDto.builder()
+                .title(book.getTitle())
+                .author(book.getAuthor())
+                .summary(book.getSummary())
+                .price(book.getPrice())
+                .build();
 
-       return new ResponseEntity<>(book, HttpStatus.FOUND);
+       return new ResponseEntity<>(responseDto, HttpStatus.FOUND);
     }
 
     //7) Method to update book content
@@ -192,7 +198,7 @@ public class BookEntityServiceImpl implements IBookEntityService {
 
         //To find book in the repository i.e. books that have not been deleted
         BookEntity bookToUpdate = bookStoreRepository.findBookBySerialNumber(bookUpdateDto.getSerialNumber())
-                .filter(x-> !x.getDeleteStatus()).orElseThrow(()-> new ApiException(String.format("Books by serial number: %s not found",
+                .orElseThrow(()-> new ApiException(String.format("Books by serial number: %s not found",
                         bookUpdateDto.getSerialNumber())));
 
 
@@ -209,6 +215,7 @@ public class BookEntityServiceImpl implements IBookEntityService {
                 .imageAddress(savedBook.getImageAddress())
                 .title(savedBook.getTitle())
                 .author(savedBook.getAuthor())
+                .summary(savedBook.getSummary())
                 .price(savedBook.getPrice())
                 .build();
 
@@ -218,21 +225,19 @@ public class BookEntityServiceImpl implements IBookEntityService {
     //8) Method to delete book
     public ResponseEntity<?> deleteBook(String serialNumber){
         //Optional search for book with specified serial number
-        Optional<BookEntity> book = bookStoreRepository.findBookBySerialNumber(serialNumber)
-                .filter(x-> x.getDeleteStatus().equals(false));
+        BookEntity book = bookStoreRepository.findBookBySerialNumber(serialNumber)
+                .filter(x-> x.getDeleteStatus().equals(Boolean.FALSE))
+                .orElseThrow(()-> new ApiException("Book by serial number: " + serialNumber + " is not found."));
 
-        //if book is not found, throw an exception
-        if(book.isEmpty()){
-            return new ResponseEntity<>("Book by " + serialNumber + " is not found.", HttpStatus.NOT_FOUND);
-        }
+
 
         //Only book delete status will be changed
-        book.get().setDeleteStatus(true);
+        book.setDeleteStatus(true);
 
         //Save changes to book status
-        bookStoreRepository.save(book.get());
+        bookStoreRepository.save(book);
 
-        return new ResponseEntity<>("Book by " + serialNumber + " has been deleted", HttpStatus.ACCEPTED);
+        return new ResponseEntity<>("Book with serial number: " + serialNumber + " has been deleted", HttpStatus.ACCEPTED);
 
     }
 
@@ -265,7 +270,7 @@ public class BookEntityServiceImpl implements IBookEntityService {
 
         Page<BookEntity> bookEntityPage = new PageImpl<>(jpaQuery.fetch(), pageable, jpaQuery.fetchCount());
 
-        //If book-search does not return any value..notify the searcher
+        //If book-search does not return any value and notify the searcher
         if(bookEntityPage.isEmpty()){
           return new ResponseEntity<>("Your search does not match any item", HttpStatus.NOT_FOUND);
         }

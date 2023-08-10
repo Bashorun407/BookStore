@@ -30,4 +30,5 @@ public class CustomCustomerUserDetialsService implements UserDetailsService {
 
         return new User(customer.getUsername(), customer.getPassword(), authorities);
     }
+
 }

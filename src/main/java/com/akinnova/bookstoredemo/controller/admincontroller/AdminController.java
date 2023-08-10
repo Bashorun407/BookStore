@@ -1,9 +1,10 @@
 package com.akinnova.bookstoredemo.controller.admincontroller;
 
+import com.akinnova.bookstoredemo.dto.admindto.AdminResponseDto;
+import com.akinnova.bookstoredemo.dto.admindto.AdminUpdateDto;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import com.akinnova.bookstoredemo.dto.admindto.AdminDto;
 import com.akinnova.bookstoredemo.dto.logindto.LoginDto;
-import com.akinnova.bookstoredemo.entity.AdminEntity;
 import com.akinnova.bookstoredemo.service.adminservice.AdminServiceImpl;
 
 import lombok.AllArgsConstructor;
@@ -22,7 +23,7 @@ public class AdminController {
 
     //1) Method create Admin
     @PostMapping("/createAdmin")
-    public ResponsePojo<AdminEntity> CreateAdmin (@RequestBody AdminDto adminDto){
+    public ResponsePojo<AdminResponseDto> CreateAdmin (@RequestBody AdminDto adminDto){
         return adminService.CreateAdmin(adminDto);
     }
 
@@ -52,7 +53,7 @@ public class AdminController {
 
     //4) Method to update Admin Status
     @PutMapping("/admin")
-    public ResponsePojo<AdminEntity> updateAdmin(@RequestBody AdminDto adminDto){
+    public ResponseEntity<?> updateAdmin(@RequestBody AdminUpdateDto adminDto){
         return adminService.updateAdmin(adminDto);
     }
 

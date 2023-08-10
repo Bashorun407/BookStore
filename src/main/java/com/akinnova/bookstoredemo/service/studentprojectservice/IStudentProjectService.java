@@ -3,7 +3,6 @@ package com.akinnova.bookstoredemo.service.studentprojectservice;
 import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectCreateDto;
 import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectResponseDto;
 import com.akinnova.bookstoredemo.dto.studentprojectdto.StudentProjectUpdateDto;
-import com.akinnova.bookstoredemo.entity.StudentProject;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import org.springframework.http.ResponseEntity;
 

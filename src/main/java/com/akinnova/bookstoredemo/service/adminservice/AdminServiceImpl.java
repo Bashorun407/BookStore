@@ -1,6 +1,8 @@
 package com.akinnova.bookstoredemo.service.adminservice;
 
 import com.akinnova.bookstoredemo.Exception.ApiException;
+import com.akinnova.bookstoredemo.dto.admindto.AdminResponseDto;
+import com.akinnova.bookstoredemo.dto.admindto.AdminUpdateDto;
 import com.akinnova.bookstoredemo.entity.QAdminEntity;
 import com.akinnova.bookstoredemo.repository.RolesRepository;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
@@ -14,7 +16,6 @@ import com.akinnova.bookstoredemo.response.ResponseUtils;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
@@ -26,16 +27,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 @Service
 public class AdminServiceImpl implements IAdminService {
 
-    @Autowired
     private final EntityManager entityManager;
     private final AdminRepository adminRepository;
     private final RolesRepository rolesRepository;
@@ -54,8 +52,9 @@ public class AdminServiceImpl implements IAdminService {
     }
 
     //1) Method create Admin
-    public ResponsePojo<AdminEntity> CreateAdmin (AdminDto adminDto){
-        if(adminRepository.existsByUsername(adminDto.getUsername())){
+    public ResponsePojo<AdminResponseDto> CreateAdmin (AdminDto adminDto){
+        boolean check = adminRepository.existsByUsername(adminDto.getUsername());
+        if(check){
             throw new ApiException("Admin with these details already exits");
         }
 
@@ -63,6 +62,7 @@ public class AdminServiceImpl implements IAdminService {
                 .imageAddress(adminDto.getImageAddress())
                 .firstName(adminDto.getFirstName())
                 .lastName(adminDto.getLastName())
+                .role(adminDto.getRole())
                 .username(adminDto.getUsername())
                 .email(adminDto.getEmail())
                 .password(passwordEncoder.encode(adminDto.getPassword()))
@@ -73,6 +73,12 @@ public class AdminServiceImpl implements IAdminService {
         //Saves newly entered admin record into the database
         adminRepository.save(admin);
 
+        AdminResponseDto responseDto = AdminResponseDto.builder()
+                .imageAddress(adminDto.getImageAddress())
+                .firstName(adminDto.getFirstName())
+                .lastName(adminDto.getLastName())
+                .role(adminDto.getRole())
+                .build();
         //To save roles in the roles database
         Roles roles = Roles.builder()
                 .roleName(adminDto.getRole())
@@ -81,10 +87,10 @@ public class AdminServiceImpl implements IAdminService {
         //Saves entered role into the database
         rolesRepository.save(roles);
 
-        ResponsePojo<AdminEntity> bookResponsePojo = new ResponsePojo<>();
+        ResponsePojo<AdminResponseDto> bookResponsePojo = new ResponsePojo<>();
         bookResponsePojo.setStatusCode(ResponseUtils.CREATED);
         bookResponsePojo.setMessage(String.format(ResponseUtils.CREATED_MESSAGE, adminDto.getFirstName() + " " + adminDto.getLastName()));
-        bookResponsePojo.setData(admin);
+        bookResponsePojo.setData(responseDto);
 
         return bookResponsePojo;
     }
@@ -103,53 +109,72 @@ public class AdminServiceImpl implements IAdminService {
         //List will contain only admins that their active-status are true
         List<AdminEntity> allAdmin = adminRepository.findAll().stream()
                 .skip(pageNum - 1).limit(pageSize)
-                .filter(x -> x.getActiveStatus().equals(true)).collect(Collectors.toList());
+                .filter(x -> x.getActiveStatus().equals(true)).toList();
+
+        List<AdminResponseDto> responseDtoList = new ArrayList<>();
 
         if(allAdmin.isEmpty())
             return new ResponseEntity<>("No Admins found", HttpStatus.NOT_FOUND);
 
-//        return new ResponseEntity<>(allAdmin, HttpStatus.FOUND);
+        //Admin response dto
+        allAdmin.stream().map(
+                adminEntity -> AdminResponseDto.builder()
+                        .imageAddress(adminEntity.getImageAddress())
+                        .firstName(adminEntity.getFirstName())
+                        .lastName(adminEntity.getLastName())
+                        .role(adminEntity.getRole())
+                        .build()
+        ).forEach(responseDtoList::add);
 
         // Return the pagedAdminList and the total count of admins
         return ResponseEntity.ok()
                 .header("Admin-Page-Number", String.valueOf(pageNum))
                 .header("Admin-Page-Size", String.valueOf(pageSize))
                 .header("Admin-Total-Count", String.valueOf(allAdmin.size()))
-                .body(allAdmin);
+                .body(responseDtoList);
     }
 
     //3) Method to get an Admin
     public ResponseEntity<?> findAdminByUsername(String username){
-        Optional<AdminEntity> admin = adminRepository.findByUsername(username);
-        admin.orElseThrow(()->
-                new ResponseStatusException(HttpStatus.NOT_FOUND));
+        AdminEntity admin = adminRepository.findByUsername(username)
+                .orElseThrow(()-> new ApiException(String.format("Admin with username: %s does not exist.", username)));
 
-        return new ResponseEntity<>(admin, HttpStatus.FOUND);
+        //Response dto
+        AdminResponseDto responseDto = AdminResponseDto.builder()
+                .imageAddress(admin.getImageAddress())
+                .firstName(admin.getFirstName())
+                .lastName(admin.getLastName())
+                .role(admin.getRole())
+                .build();
+
+        return new ResponseEntity<>(responseDto, HttpStatus.FOUND);
     }
 
     @Override
     public ResponseEntity<?> findAdminByEmail(String email) {
-        Optional<AdminEntity> admin = adminRepository.findByEmail(email);
-        admin.orElseThrow(()->
-                new ResponseStatusException(HttpStatus.NOT_FOUND));
+        AdminEntity admin = adminRepository.findByEmail(email)
+               .orElseThrow(()-> new ApiException(String.format("Admin with username: %s does not exist.", email)));
 
-        return new ResponseEntity<>(admin, HttpStatus.FOUND);
+        //Response dto
+        AdminResponseDto responseDto = AdminResponseDto.builder()
+                .imageAddress(admin.getImageAddress())
+                .firstName(admin.getFirstName())
+                .lastName(admin.getLastName())
+                .role(admin.getRole())
+                .build();
+
+        return new ResponseEntity<>(responseDto, HttpStatus.FOUND);
     }
 
     //4) Method to update Admin Status
-    public ResponsePojo<AdminEntity> updateAdmin(AdminDto adminDto){
+    public ResponseEntity<?> updateAdmin(AdminUpdateDto adminDto){
 
         //Fetch if admin exists
-        Optional<AdminEntity> adminEntityOptional = adminRepository.findByEmail(adminDto.getEmail())
-                .filter(AdminEntity::getActiveStatus);
-        adminEntityOptional.orElseThrow(()->
+        AdminEntity adminToUpdate = adminRepository.findByEmail(adminDto.getEmail())
+                .orElseThrow(()->
                 new ApiException(String.format("Admin with email: %s does not exist", adminDto.getEmail())));
-        //Update Admin if Admin exists
-         AdminEntity adminToUpdate = adminEntityOptional.get();
 
          adminToUpdate.setImageAddress(adminDto.getImageAddress());
-         adminToUpdate.setFirstName(adminDto.getFirstName());
-         adminToUpdate.setLastName(adminDto.getLastName());
          adminToUpdate.setUsername(adminDto.getUsername());
          adminToUpdate.setEmail(adminDto.getEmail());
          adminToUpdate.setPassword(passwordEncoder.encode(adminDto.getPassword()));
@@ -159,33 +184,19 @@ public class AdminServiceImpl implements IAdminService {
         //Saves updated admin details to database
         adminRepository.save(adminToUpdate);
 
-        //To save roles in the roles database
-        Roles roles = Roles.builder()
-                .roleName(adminDto.getRole())
-                .build();
-
-        //Saves entered role into the database
-        rolesRepository.save(roles);
-
         //Response POJO
-        ResponsePojo<AdminEntity> responsePojo = new ResponsePojo<>();
-        responsePojo.setStatusCode(ResponseUtils.ACCEPTED);
-        responsePojo.setMessage("Admin detail updated");
-        responsePojo.setData(adminToUpdate);
 
-        return responsePojo;
+        return new ResponseEntity<>("Admin updated successfully", HttpStatus.ACCEPTED);
     }
 
     //5) Method to Delete Admin
     public ResponseEntity<?> deleteAdmin(AdminDto adminDto){
 
         //Fetch admin details to delete
-        Optional<AdminEntity> adminEntityOptional = adminRepository.findByUsername(adminDto.getUsername())
-                .filter(AdminEntity::getActiveStatus);
-
-        adminEntityOptional.orElseThrow(()-> new ApiException(String.format("Admin with username: %s not found.",
+        AdminEntity adminToDelete = adminRepository.findByUsername(adminDto.getUsername())
+                .filter(AdminEntity::getActiveStatus)
+                .orElseThrow(()-> new ApiException(String.format("Admin with username: %s not found.",
                 adminDto.getUsername())));
-        AdminEntity adminToDelete = adminEntityOptional.get();
 
         //Delete Admin if Admin exists
         adminToDelete.setActiveStatus(false);
@@ -222,7 +233,9 @@ public class AdminServiceImpl implements IAdminService {
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(entityManager);
         JPAQuery<AdminEntity> jpaQuery = jpaQueryFactory.selectFrom(qAdminEntity)
                 .where(predicate.and(qAdminEntity.activeStatus.eq(true)))
-                .orderBy(qAdminEntity.id.asc());
+                .orderBy(qAdminEntity.id.asc())
+                .offset(pageNum)
+                .limit(pageSize);
 
         Page<AdminEntity> adminEntityPage = new PageImpl<>(jpaQuery.fetch());
 

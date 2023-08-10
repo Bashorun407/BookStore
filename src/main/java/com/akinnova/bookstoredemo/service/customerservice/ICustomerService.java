@@ -4,7 +4,6 @@ import com.akinnova.bookstoredemo.dto.customerdto.CustomerDto;
 import com.akinnova.bookstoredemo.dto.customerdto.CustomerResponseDto;
 import com.akinnova.bookstoredemo.dto.logindto.LoginDto;
 import com.akinnova.bookstoredemo.dto.customerdto.CustomerUpdateDto;
-import com.akinnova.bookstoredemo.entity.Customer;
 import com.akinnova.bookstoredemo.response.ResponsePojo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
